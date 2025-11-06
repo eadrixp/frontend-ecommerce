@@ -1,9 +1,10 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Router } from "react-router-dom";
 import LoginPage from "./modules/auth/LoginPage";
 import DashboardPage from "./modules/dashboard/DashboardPage";
 import PrivateRoute from "./components/PrivateRoute";
 import ProductosPage from "./modules/products/ProductoPage";
+import CatalogoPage from "./modules/catalogo/CatalogoPage";
 
 import DashboardLayout from "./components/layout/DashboardLayout";
 
@@ -12,6 +13,9 @@ function App() {
     <Routes>
       {/* Página principal (login) */}
       <Route path="/" element={<LoginPage />} />
+      
+      {/* Catálogo público para clientes */}
+      <Route path="/catalogo" element={<CatalogoPage />} />
 
       {/* Rutas protegidas con sidebar */}
       <Route element={<PrivateRoute />}>
@@ -50,7 +54,7 @@ function App() {
           }
         />
       </Route>
-      <Route element={<PrivateRoute />}>
+          <Route element={<PrivateRoute />}>
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/productos" element={<ProductosPage />} />
       </Route>

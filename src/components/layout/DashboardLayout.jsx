@@ -79,6 +79,7 @@ const DashboardLayout = ({ children }) => {
   return (
     <div style={containerStyle}>
       <aside style={sidebarStyle}>
+
         <div>
           <h2 style={{ marginBottom: "30px", color: "#fff" }}>
             Nexxus Tecnology
@@ -142,6 +143,7 @@ const DashboardLayout = ({ children }) => {
         >
           🚪 Cerrar sesión
         </button>
+
       </aside>
 
       <main style={contentStyle}>{children}</main>
