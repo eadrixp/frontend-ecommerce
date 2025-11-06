@@ -17,6 +17,9 @@ function App() {
     <Routes>
       {/* Página principal (login) */}
       <Route path="/" element={<LoginPage />} />
+      
+      {/* Catálogo público para clientes */}
+      <Route path="/catalogo" element={<CatalogoPage />} />
 
       {/* Rutas protegidas con sidebar */}
       <Route element={<PrivateRoute />}>
