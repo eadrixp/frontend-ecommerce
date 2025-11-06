@@ -97,7 +97,7 @@ src/
 │   ├── Navbar.jsx
 │   ├── PrivateRoute.jsx
 │   └── LoadingSpinner.jsx
-│
+│   └── Sidebar.jsx
 ├── modules/            # Componentes organizados por módulo funcional
 │   ├── auth/
 │   ├── dashboard/

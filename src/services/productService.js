@@ -1,39 +1,25 @@
-// Servicio para consumir el backend de productos
-const API_URL = "http://localhost:3000/api/productos"; // Ajusta según tu backend
+import apiClient from "../api/apiClient";
 
-// Obtiene todos los productos
+// ✅ Obtiene todos los productos
 export const getProductos = async () => {
-  const res = await fetch(API_URL);
-  if (!res.ok) throw new Error("Error al obtener productos");
-  const data = await res.json();
+  const { data } = await apiClient.get("/productos");
   return data.data || [];
 };
 
-// Crea un nuevo producto
+// ✅ Crea un nuevo producto
 export const createProducto = async (producto) => {
-  const res = await fetch(API_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(producto),
-  });
-  if (!res.ok) throw new Error("Error al crear producto");
-  return res.json();
+  const { data } = await apiClient.post("/productos", producto);
+  return data;
 };
 
-// Actualiza un producto existente
+// ✅ Actualiza un producto existente
 export const updateProducto = async (id, producto) => {
-  const res = await fetch(`${API_URL}/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(producto),
-  });
-  if (!res.ok) throw new Error("Error al actualizar producto");
-  return res.json();
+  const { data } = await apiClient.put(`/productos/${id}`, producto);
+  return data;
 };
 
-// Elimina (desactiva) un producto
+// ✅ Elimina (desactiva) un producto
 export const deleteProducto = async (id) => {
-  const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-  if (!res.ok) throw new Error("Error al eliminar producto");
-  return res.json();
+  const { data } = await apiClient.delete(`/productos/${id}`);
+  return data;
 };

@@ -4,10 +4,7 @@ import LoginPage from "./modules/auth/LoginPage";
 import DashboardPage from "./modules/dashboard/DashboardPage";
 import PrivateRoute from "./components/PrivateRoute";
 import ProductosPage from "./modules/products/ProductoPage";
-// ⚠️ Temporalmente desactivamos los módulos que aún no existen
-// import ProductosPage from "./modules/productos/ProductosPage";
-// import ClientesPage from "./modules/clientes/ClientesPage";
-// import CategoriasPage from "./modules/categorias/CategoriasPage";
+
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 function App() {
