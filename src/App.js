@@ -1,10 +1,15 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+
+// Páginas
 import LoginPage from "./modules/auth/LoginPage";
 import DashboardPage from "./modules/dashboard/DashboardPage";
-import PrivateRoute from "./components/PrivateRoute";
 import ProductosPage from "./modules/products/ProductoPage";
-
+import ClientesPage from "./modules/clientes/ClientesPage"; // tu página real de clientes
+import CategoriasPage from "./modules/categories/CategoirasPage"; // tu página real de categorías
+import DireccionPage from "./modules/direccion/DireccionPage";
+// Componentes
+import PrivateRoute from "./components/PrivateRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
 
 function App() {
@@ -24,35 +29,40 @@ function App() {
           }
         />
 
-        {/* Placeholders temporales */}
         <Route
-          path="/dashboard-productos"
+          path="/productos"
           element={
-            <DashboardLayout>
-              <h2>Productos (en construcción)</h2>
-            </DashboardLayout>
+            
+              <ProductosPage />
+            
           }
         />
+
         <Route
           path="/clientes"
           element={
             <DashboardLayout>
-              <h2>Clientes (en construcción)</h2>
+              <ClientesPage />
             </DashboardLayout>
           }
         />
+
         <Route
           path="/categorias"
           element={
             <DashboardLayout>
-              <h2>Categorías (en construcción)</h2>
+              <CategoriasPage />
             </DashboardLayout>
           }
         />
-      </Route>
-      <Route element={<PrivateRoute />}>
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/productos" element={<ProductosPage />} />
+          <Route
+          path="/direcciones"
+          element={
+            <DashboardLayout>
+              <DireccionPage />
+            </DashboardLayout>
+          }
+        />
       </Route>
 
       {/* Redirección por defecto */}
@@ -60,5 +70,5 @@ function App() {
     </Routes>
   );
 }
-//
+
 export default App;
