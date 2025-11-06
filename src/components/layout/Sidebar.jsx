@@ -19,16 +19,22 @@ const Sidebar = () => {
         <NavLink to="/dashboard" className="sidebar-link">
           🏠 Dashboard
         </NavLink>
+        
         <NavLink to="/dashboard-productos" className="sidebar-link">
-          📦 Productos
+           Productoss
         </NavLink>
         <NavLink to="/clientes" className="sidebar-link">
-          👥 Clientes
+           Clientes
         </NavLink>
-        <NavLink to="/categorias" className="sidebar-link">
-          🗂️ Categorías
+        <NavLink to="/dashboard-categorias" className="sidebar-link">
+           Categorías
         </NavLink>
+        <NavLink to="/direccion" className="sidebar-link">
+           Direcciones
+        </NavLink>
+
       </nav>
+
       <button onClick={handleLogout} className="logout-btn">
         🚪 Cerrar sesión
       </button>

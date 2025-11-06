@@ -1,9 +1,27 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { NavLink } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import { getProfile } from "../../api/authService";
 
 const DashboardLayout = ({ children }) => {
+  const { logout } = useAuth();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const data = await getProfile();
+        setUser(data);
+      } catch (error) {
+        console.error("Error al obtener el perfil:", error);
+        logout();
+      }
+    };
+    fetchProfile();
+  }, [logout]);
+
   const sidebarStyle = {
-    width: "220px",
+    width: "250px",
     backgroundColor: "#1f2937",
     color: "#fff",
     height: "100vh",
@@ -11,18 +29,28 @@ const DashboardLayout = ({ children }) => {
     flexDirection: "column",
     padding: "20px",
     boxSizing: "border-box",
+    justifyContent: "space-between", // Para que el botón quede abajo
+  };
+
+  const navStyle = {
+    display: "flex",
+    flexDirection: "column",
+    gap: "15px", // más separación entre links
   };
 
   const linkStyle = {
     color: "#d1d5db",
     textDecoration: "none",
-    marginBottom: "12px",
-    fontWeight: "500",
+    padding: "10px 15px",
+    borderRadius: "8px",
+    transition: "all 0.2s",
   };
 
   const linkActiveStyle = {
     color: "#fff",
     fontWeight: "bold",
+    backgroundColor: "#374151",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
   };
 
   const containerStyle = {
@@ -36,30 +64,88 @@ const DashboardLayout = ({ children }) => {
     padding: "20px",
   };
 
+  const logoutButtonStyle = {
+    backgroundColor: "#ef4444",
+    color: "#fff",
+    border: "none",
+    padding: "10px",
+    borderRadius: "8px",
+    cursor: "pointer",
+    fontWeight: "bold",
+    marginTop: "20px",
+    transition: "all 0.2s",
+  };
+
   return (
     <div style={containerStyle}>
       <aside style={sidebarStyle}>
-        <h2 style={{ marginBottom: "20px", color: "#fff" }}>📦 Dashboard</h2>
-        <nav style={{ display: "flex", flexDirection: "column" }}>
-          <Link to="/dashboard" style={linkStyle}>
-          Inicio
-          </Link>
-          <Link to="/productos" style={linkStyle}>
-          Productos
-          </Link>
-          <Link to="/clientes" style={linkStyle}>
-            Clientes
-          </Link>
-          <Link to="/categorias" style={linkStyle}>
-            Categorías
-          </Link>
-          <div style={{ borderTop: "1px solid #374151", margin: "10px 0", paddingTop: "10px" }}>
-            <Link to="/catalogo" style={{...linkStyle, color: "#10b981"}}>
-            Ver Catálogo
-            </Link>
-          </div>
-        </nav>
+
+        <div>
+          <h2 style={{ marginBottom: "30px", color: "#fff" }}>
+            Nexxus Tecnology
+          </h2>
+          
+          {user && (
+            <p style={{ marginBottom: "20px", fontWeight: "bold" }}>
+              👤 {user.nombre_usuario}
+            </p>
+          )}
+
+          <nav style={navStyle}>
+            <NavLink
+              to="/dashboard"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              Inicio
+            </NavLink>
+            <NavLink
+              to="/productos"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              Productos
+            </NavLink>
+            <NavLink
+              to="/clientes"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              Clientes
+            </NavLink>
+            <NavLink
+              to="/categorias"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              Categorías
+            </NavLink>
+            <NavLink
+              to="/direccion"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              Direcciones
+            </NavLink>
+          </nav>
+        </div>
+
+        <button
+          style={logoutButtonStyle}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ef4444")}
+          onClick={logout}
+        >
+          🚪 Cerrar sesión
+        </button>
+
       </aside>
+
       <main style={contentStyle}>{children}</main>
     </div>
   );
