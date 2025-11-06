@@ -42,10 +42,10 @@ const DashboardLayout = ({ children }) => {
         <h2 style={{ marginBottom: "20px", color: "#fff" }}>📦 Dashboard</h2>
         <nav style={{ display: "flex", flexDirection: "column" }}>
           <Link to="/dashboard" style={linkStyle}>
-            Inicio
+          Inicio
           </Link>
           <Link to="/productos" style={linkStyle}>
-            Productos
+          Productos
           </Link>
           <Link to="/clientes" style={linkStyle}>
             Clientes
@@ -53,6 +53,11 @@ const DashboardLayout = ({ children }) => {
           <Link to="/categorias" style={linkStyle}>
             Categorías
           </Link>
+          <div style={{ borderTop: "1px solid #374151", margin: "10px 0", paddingTop: "10px" }}>
+            <Link to="/catalogo" style={{...linkStyle, color: "#10b981"}}>
+            Ver Catálogo
+            </Link>
+          </div>
         </nav>
       </aside>
       <main style={contentStyle}>{children}</main>
