@@ -125,7 +125,7 @@ const DashboardLayout = ({ children }) => {
               Categorías
             </NavLink>
             <NavLink
-              to="/direccion"
+              to="/direcciones"
               style={({ isActive }) =>
                 isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
               }
