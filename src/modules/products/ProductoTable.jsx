@@ -23,7 +23,7 @@ const ProductoTable = ({ productos }) => {
             <tr key={p.id_producto} style={{ borderBottom: "1px solid #eee" }}>
               <td style={{ padding: "0.5rem" }}>{p.id_producto}</td>
               <td style={{ padding: "0.5rem" }}>{p.nombre_producto}</td>
-              <td style={{ padding: "0.5rem" }}>${p.precio}</td>
+              <td style={{ padding: "0.5rem" }}>Q{p.precio}</td>
               <td style={{ padding: "0.5rem" }}>{p.stock}</td>
               <td style={{ padding: "0.5rem" }}>
                 {p.activo ? "✅" : "❌"}
