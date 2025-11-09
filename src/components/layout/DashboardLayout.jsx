@@ -24,7 +24,7 @@ const DashboardLayout = ({ children }) => {
     width: "250px",
     backgroundColor: "#1f2937",
     color: "#fff",
-    height: "100vh",
+    height: "110avh",
     display: "flex",
     flexDirection: "column",
     padding: "20px",
@@ -55,7 +55,7 @@ const DashboardLayout = ({ children }) => {
 
   const containerStyle = {
     display: "flex",
-    minHeight: "100vh",
+    minHeight: "50vh",
   };
 
   const contentStyle = {
@@ -84,7 +84,7 @@ const DashboardLayout = ({ children }) => {
           <h2 style={{ marginBottom: "30px", color: "#fff" }}>
             Nexxus Tecnology
           </h2>
-          
+
           {user && (
             <p style={{ marginBottom: "20px", fontWeight: "bold" }}>
               👤 {user.nombre_usuario}

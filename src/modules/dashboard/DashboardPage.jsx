@@ -193,9 +193,7 @@ const DashboardPage = () => {
           <Link to="/categorias" style={quickActionStyle}>
             📋 Categorías
           </Link>
-          <a href="#pedidos" style={quickActionStyle}>
-            📊 Reportes
-          </a>
+          
         </div>
       </div>
 
