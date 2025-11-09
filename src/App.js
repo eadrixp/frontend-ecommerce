@@ -8,6 +8,9 @@ import ProductosPage from "./modules/products/ProductoPage";
 import ClientesPage from "./modules/clientes/ClientesPage"; // tu página real de clientes
 import CategoriasPage from "./modules/categories/CategoirasPage"; // tu página real de categorías
 import DireccionPage from "./modules/direccion/DireccionPage";
+import CatalogoPage from "./modules/catalogo/CatalogoPage";
+import CheckoutPage from "./modules/checkout/CheckoutPage";
+
 // Componentes
 import PrivateRoute from "./components/PrivateRoute";
 import DashboardLayout from "./components/layout/DashboardLayout";
@@ -20,6 +23,9 @@ function App() {
       
       {/* Catálogo público para clientes */}
       <Route path="/catalogo" element={<CatalogoPage />} />
+      
+      {/* Checkout page para clientes autenticados */}
+      <Route path="/checkout" element={<CheckoutPage />} />
 
       {/* Rutas protegidas con sidebar */}
       <Route element={<PrivateRoute />}>

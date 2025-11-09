@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { login } from "../../api/authService";
+import { login } from "../../services/authService";
+import { loginCliente } from "../../services/clienteAuthService";
 import useAuth from "../../hooks/useAuth";
 
 const LoginPage = () => {
@@ -21,20 +22,45 @@ const LoginPage = () => {
     setIsLoading(true);
 
     try {
-      const data = await login(form.correo_electronico, form.contrasena);
-
-      if (data?.token) {
-        setToken(data.token);
-        // Pequeña pausa para mejor UX
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 500);
-      } else {
-        setError("Error: respuesta inválida del servidor");
+      // Primero intentamos login como administrador
+      let data;
+      try {
+        data = await login(form.correo_electronico, form.contrasena);
+        
+        // Verificar si es administrador usando nombre_rol
+        if (data?.token && data?.user?.nombre_rol === 'administrador') {
+          setToken(data.token);
+          setTimeout(() => {
+            navigate("/dashboard");
+          }, 500);
+          return;
+        }
+      } catch (adminError) {
+        // Si falla el login de admin, intentamos como cliente
+        console.log("Login de admin falló, intentando como cliente...");
       }
+
+      // Intentamos login como cliente
+      try {
+        data = await loginCliente(form.correo_electronico, form.contrasena);
+        
+        if (data?.token) {
+          setToken(data.token);
+          setTimeout(() => {
+            navigate("/catalogo");
+          }, 500);
+          return;
+        }
+      } catch (clienteError) {
+        console.log("Login de cliente también falló");
+      }
+
+      // Si ambos fallan
+      setError("Credenciales inválidas o usuario no encontrado");
+
     } catch (err) {
       console.error(err);
-      setError("Credenciales inválidas o error de conexión");
+      setError("Error de conexión al servidor");
     } finally {
       setIsLoading(false);
     }

@@ -4,8 +4,11 @@ import ProductCard from "./components/ProductCard";
 import SearchBar from "./components/SearchBar";
 import CategoryFilter from "./components/CategoryFilter";
 import ShoppingCart from "./components/ShoppingCart";
+import ClienteAuthModal from "./components/ClienteAuthModal";
+import useAuth from "../../hooks/useAuth";
 
 const CatalogoPage = () => {
+  const { user, isClienteLoggedIn, logout } = useAuth();
   const [productos, setProductos] = useState([]);
   const [filteredProductos, setFilteredProductos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,6 +16,7 @@ const CatalogoPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Cargar productos
   useEffect(() => {
@@ -101,6 +105,11 @@ const CatalogoPage = () => {
     }
   };
 
+  // Función para abrir el modal de autenticación
+  const handleShowLogin = () => {
+    setShowAuthModal(true);
+  };
+
   const headerStyle = {
     backgroundColor: "#ffffff",
     borderBottom: "1px solid #e2e8f0",
@@ -186,9 +195,57 @@ const CatalogoPage = () => {
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            <span style={{ color: "#6b7280" }}>
-              {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''}
-            </span>
+            {isClienteLoggedIn() ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <div style={{ textAlign: "right" }}>
+                  <p style={{ margin: 0, color: "#111827", fontWeight: "600" }}>
+                    👤 {user?.nombre_usuario || user?.correo_electronico}
+                  </p>
+                  <p style={{ margin: 0, color: "#6b7280", fontSize: "0.875rem" }}>
+                    Cliente
+                  </p>
+                </div>
+                <button 
+                  onClick={logout}
+                  style={{
+                    padding: "0.5rem 1rem",
+                    backgroundColor: "#ef4444",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "0.875rem"
+                  }}
+                >
+                  Cerrar Sesión
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <span style={{ color: "#6b7280" }}>
+                  {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''}
+                </span>
+                <button
+                  onClick={handleShowLogin}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    backgroundColor: "#2563eb",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                    fontWeight: "600",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)"
+                  }}
+                >
+                  👤 Iniciar Sesión
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -265,6 +322,15 @@ const CatalogoPage = () => {
           onClose={() => setShowCart(false)}
           onRemove={removeFromCart}
           onUpdateQuantity={updateQuantity}
+        />
+      )}
+
+      {/* Modal de autenticación */}
+      {showAuthModal && (
+        <ClienteAuthModal
+          isOpen={showAuthModal}
+          onClose={() => setShowAuthModal(false)}
+          returnPath="/catalogo"
         />
       )}
 

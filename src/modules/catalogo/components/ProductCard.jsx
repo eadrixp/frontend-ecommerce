@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
+import { getImageUrl, getPlaceholderUrl } from "../../../utils/imageUtils";
 
 const ProductCard = ({ producto, onAddToCart }) => {
+  const [imageError, setImageError] = useState(false);
+  const [imageLoading, setImageLoading] = useState(true);
+
+  // Construir URL de la imagen
+  const imageUrl = getImageUrl(producto.imagen_url);
+  const placeholderUrl = getPlaceholderUrl(producto.nombre_producto, 400, 300);
+
   const cardStyle = {
     backgroundColor: "#ffffff",
     borderRadius: "16px",
@@ -26,7 +34,8 @@ const ProductCard = ({ producto, onAddToCart }) => {
     justifyContent: "center",
     marginBottom: "1rem",
     fontSize: "3rem",
-    overflow: "hidden"
+    overflow: "hidden",
+    position: "relative"
   };
 
   const priceStyle = {
@@ -90,30 +99,84 @@ const ProductCard = ({ producto, onAddToCart }) => {
 
       {/* Imagen del producto */}
       <div style={imageStyle}>
-        {producto.imagen_url ? (
-          <img
-            src={`http://localhost:3000${producto.imagen_url}`}
+        {imageUrl && !imageError ? (
+          <>
+            {imageLoading && (
+              <div style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: "#f8fafc",
+                borderRadius: "6px"
+              }}>
+                <div style={{
+                  width: "24px",
+                  height: "24px",
+                  border: "2px solid #e2e8f0",
+                  borderTop: "2px solid #667eea",
+                  borderRadius: "50%",
+                  animation: "spin 1s linear infinite"
+                }}></div>
+              </div>
+            )}
+            <img
+            src={imageUrl}
             alt={producto.nombre_producto}
             style={{
               width: "100%",
               height: "100%",
               objectFit: "cover",
-              borderRadius: "6px"
+              borderRadius: "6px",
+              display: imageLoading ? "none" : "block"
             }}
-            onError={(e) => {
-              e.target.style.display = 'none';
-              e.target.parentNode.innerHTML = '<div style="display: flex; flex-direction: column; align-items: center; color: #64748b;"><span style="font-size: 2.5rem;">🖼️</span><span style="font-size: 0.75rem; margin-top: 0.5rem;">Imagen no disponible</span></div>';
+            onLoad={() => {
+              setImageLoading(false);
+              setImageError(false);
+            }}
+            onError={() => {
+              console.warn(`Error cargando imagen: ${imageUrl}`);
+              setImageError(true);
+              setImageLoading(false);
             }}
           />
+          </>
         ) : (
-          <div style={{ 
-            display: "flex", 
-            flexDirection: "column", 
-            alignItems: "center", 
-            color: "#64748b" 
+          // Imagen de placeholder o error
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#64748b",
+            height: "100%",
+            textAlign: "center"
           }}>
-            <span style={{ fontSize: "2.5rem" }}>�️</span>
-            <span style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>Sin imagen</span>
+            <img
+              src={placeholderUrl}
+              alt={`Placeholder para ${producto.nombre_producto || 'producto'}`}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                borderRadius: "6px",
+                opacity: "0.7"
+              }}
+              onError={(e) => {
+                // Si también falla el placeholder, mostrar icono
+                e.target.style.display = 'none';
+                e.target.parentElement.innerHTML = `
+                  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b;">
+                    <span style="font-size: 2.5rem;">🖼️</span>
+                    <span style="font-size: 0.75rem; margin-top: 0.5rem;">Sin imagen</span>
+                  </div>
+                `;
+              }}
+            />
           </div>
         )}
       </div>

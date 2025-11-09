@@ -8,22 +8,24 @@ const SearchBar = ({ searchTerm, onSearchChange }) => {
 
   const inputStyle = {
     width: "100%",
-    padding: "0.75rem 1rem 0.75rem 3rem",
-    fontSize: "1rem",
+    padding: "0.5rem 0.75rem 0.5rem 2.5rem",
+    fontSize: "0.875rem",
     border: "2px solid #e5e7eb",
-    borderRadius: "10px",
+    borderRadius: "8px",
     outline: "none",
     transition: "border-color 0.2s",
-    backgroundColor: "#ffffff"
+    backgroundColor: "#ffffff",
+    height: "40px",
+    boxSizing: "border-box"
   };
 
   const iconStyle = {
     position: "absolute",
-    left: "1rem",
+    left: "0.75rem",
     top: "50%",
     transform: "translateY(-50%)",
     color: "#6b7280",
-    fontSize: "1.2rem",
+    fontSize: "1rem",
     pointerEvents: "none"
   };
 
@@ -48,16 +50,23 @@ const SearchBar = ({ searchTerm, onSearchChange }) => {
           onClick={() => onSearchChange("")}
           style={{
             position: "absolute",
-            right: "1rem",
+            right: "0.75rem",
             top: "50%",
             transform: "translateY(-50%)",
             background: "none",
             border: "none",
             cursor: "pointer",
             color: "#6b7280",
-            fontSize: "1.2rem"
+            fontSize: "1rem",
+            width: "20px",
+            height: "20px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%"
           }}
         >
+          ❌
         </button>
       )}
     </div>

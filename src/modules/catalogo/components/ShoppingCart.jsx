@@ -1,6 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { getImageUrl } from "../../../utils/imageUtils";
+import useAuth from "../../../hooks/useAuth";
+import ClienteAuthModal from "./ClienteAuthModal";
 
 const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
+  const { isClienteLoggedIn, hasValidToken } = useAuth();
+  const navigate = useNavigate();
+  const [showAuthModal, setShowAuthModal] = useState(false);
   const overlayStyle = {
     position: "fixed",
     top: 0,
@@ -54,9 +61,36 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
 
   const total = cart.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
 
+  // Helper function para determinar si el usuario está logueado
+  const userIsLoggedIn = () => {
+    const clienteLoggedIn = isClienteLoggedIn();
+    const hasToken = hasValidToken();
+    const result = clienteLoggedIn || hasToken;
+    
+    console.log("🔐 userIsLoggedIn - Cliente:", clienteLoggedIn, "Token:", hasToken, "Result:", result);
+    return result;
+  };
+
+  const handleLogin = () => {
+    setShowAuthModal(true);
+  };
+
   const handleCheckout = () => {
-    // TODO: Implementar proceso de checkout
-    alert("Funcionalidad de checkout en desarrollo");
+    console.log("🛒 Iniciando proceso de checkout...");
+    
+    if (!userIsLoggedIn()) {
+      alert("Por favor inicia sesión para proceder con la compra");
+      return;
+    }
+    
+    // Si está logueado, ir a la página de checkout con los datos del carrito
+    navigate("/checkout", {
+      state: {
+        cartItems: cart,
+        totalAmount: total
+      }
+    });
+    onClose(); // Cerrar el modal del carrito
   };
 
   return (
@@ -64,9 +98,41 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
       <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={headerStyle}>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#111827", margin: 0 }}>
-            🛒 Carrito de Compras
-          </h2>
+          <div>
+            <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#111827", margin: 0 }}>
+              🛒 Carrito de Compras
+            </h2>
+            {/* Estado de autenticación */}
+            <div style={{ marginTop: "0.5rem" }}>
+              {userIsLoggedIn() ? (
+                <span style={{ 
+                  color: "#10b981", 
+                  fontSize: "0.875rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.25rem"
+                }}>
+                  ✅ Sesión iniciada
+                </span>
+              ) : (
+                <button
+                  onClick={handleLogin}
+                  style={{
+                    backgroundColor: "#2563eb",
+                    color: "white",
+                    border: "none",
+                    borderRadius: "6px",
+                    padding: "0.375rem 0.75rem",
+                    fontSize: "0.875rem",
+                    cursor: "pointer",
+                    fontWeight: "500"
+                  }}
+                >
+                  👤 Iniciar Sesión
+                </button>
+              )}
+            </div>
+          </div>
           <button
             onClick={onClose}
             style={{
@@ -115,7 +181,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                   }}>
                     {item.imagen_url ? (
                       <img
-                        src={item.imagen_url}
+                        src={getImageUrl(item.imagen_url)}
                         alt={item.nombre_producto}
                         style={{
                           width: "100%",
@@ -236,7 +302,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
               onClick={handleCheckout}
               style={{
                 width: "100%",
-                backgroundColor: "#059669",
+                backgroundColor: userIsLoggedIn() ? "#059669" : "#6b7280",
                 color: "white",
                 border: "none",
                 borderRadius: "8px",
@@ -244,20 +310,30 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                 fontSize: "1rem",
                 fontWeight: "600",
                 cursor: "pointer",
-                transition: "background-color 0.2s"
+                transition: "background-color 0.2s",
+                opacity: userIsLoggedIn() ? 1 : 0.8
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#047857";
+                if (userIsLoggedIn()) {
+                  e.currentTarget.style.backgroundColor = "#047857";
+                }
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "#059669";
+                e.currentTarget.style.backgroundColor = userIsLoggedIn() ? "#059669" : "#6b7280";
               }}
             >
-              💳 Proceder al Pago
+              {userIsLoggedIn() ? "💳 Proceder al Pago" : "🔒 Inicia sesión para comprar"}
             </button>
           </div>
         )}
       </div>
+
+      {/* Modal de autenticación */}
+      <ClienteAuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        returnPath="/catalogo"
+      />
     </div>
   );
 };
