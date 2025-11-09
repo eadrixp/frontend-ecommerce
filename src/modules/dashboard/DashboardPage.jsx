@@ -10,6 +10,7 @@ const DashboardPage = () => {
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     productos: 0,
+    totalProductos: 0,
     categorias: 0,
     inventario: 0,
     valorInventario: 0
@@ -47,6 +48,7 @@ const DashboardPage = () => {
         
         setStats({
           productos: productosActivos,
+          totalProductos: totalProductos,
           categorias: categoriasUnicas,
           inventario: totalStock,
           valorInventario: valorInventario
@@ -56,6 +58,7 @@ const DashboardPage = () => {
         // Valores por defecto en caso de error
         setStats({
           productos: 0,
+          totalProductos: 0,
           categorias: 0,
           inventario: 0,
           valorInventario: 0
@@ -156,7 +159,7 @@ const DashboardPage = () => {
         <div style={cardStyle}>
           <h3 style={{ color: "#2563eb", fontSize: "1.25rem", marginBottom: "0.5rem" }}>Productos Activos</h3>
           <p style={{ fontSize: "2rem", fontWeight: "bold", color: "#111827" }}>{stats.productos}</p>
-          <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>Productos en el catálogo</p>
+          <p style={{ color: "#6b7280", fontSize: "0.875rem" }}>de {stats.totalProductos} productos totales</p>
         </div>
 
         <div style={cardStyle}>
