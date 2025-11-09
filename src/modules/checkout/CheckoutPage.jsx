@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { createAddress, getAddresses } from "../../services/addressService";
@@ -9,9 +9,9 @@ const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Cart data passed from ShoppingCart
-  const cartItems = location.state?.cartItems || [];
-  const totalAmount = location.state?.totalAmount || 0;
+  // Cart data passed from ShoppingCart - memoized to avoid re-renders
+  const cartItems = useMemo(() => location.state?.cartItems || [], [location.state?.cartItems]);
+  const totalAmount = useMemo(() => location.state?.totalAmount || 0, [location.state?.totalAmount]);
 
   const [step, setStep] = useState(1); // 1: Dirección, 2: Pago, 3: Confirmación
   const [loading, setLoading] = useState(false);
