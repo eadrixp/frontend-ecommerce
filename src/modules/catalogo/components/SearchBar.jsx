@@ -1,4 +1,5 @@
 import React from "react";
+import { FiSearch, FiX } from 'react-icons/fi';
 
 const SearchBar = ({ searchTerm, onSearchChange }) => {
   const containerStyle = {
@@ -31,7 +32,9 @@ const SearchBar = ({ searchTerm, onSearchChange }) => {
 
   return (
     <div style={containerStyle}>
-      <div style={iconStyle}>🔍</div>
+      <div style={iconStyle}>
+        <FiSearch size={16} />
+      </div>
       <input
         type="text"
         placeholder="Buscar productos..."
@@ -66,7 +69,7 @@ const SearchBar = ({ searchTerm, onSearchChange }) => {
             borderRadius: "50%"
           }}
         >
-          ❌
+          <FiX size={16} />
         </button>
       )}
     </div>

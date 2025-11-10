@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { loginCliente, registerCliente } from "../../../services/clienteAuthService";
 import useAuth from "../../../hooks/useAuth";
+import { FiX, FiAlertTriangle } from 'react-icons/fi';
 
 const ClienteAuthModal = ({ isOpen, onClose, returnPath = "/catalogo" }) => {
   const { loginWithRedirect } = useAuth();
@@ -181,7 +182,7 @@ const ClienteAuthModal = ({ isOpen, onClose, returnPath = "/catalogo" }) => {
             color: "#6b7280"
           }}
         >
-          ❌
+          <FiX size={24} />
         </button>
 
         {/* Header */}
@@ -253,7 +254,7 @@ const ClienteAuthModal = ({ isOpen, onClose, returnPath = "/catalogo" }) => {
 
           {error && (
             <div style={errorStyle}>
-              <span>⚠️</span>
+              <FiAlertTriangle size={16} />
               <span>{error}</span>
             </div>
           )}

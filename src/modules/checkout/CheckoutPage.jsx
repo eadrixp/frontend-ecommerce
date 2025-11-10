@@ -3,6 +3,10 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { createAddress, getAddresses } from "../../services/addressService";
 import { createOrder, processPayment } from "../../services/orderService";
+import { 
+  FiCheck, 
+  FiAlertTriangle
+} from 'react-icons/fi';
 
 const CheckoutPage = () => {
   const { user, isClienteLoggedIn } = useAuth();
@@ -249,7 +253,9 @@ const CheckoutPage = () => {
       <div style={pageStyle}>
         <div style={containerStyle}>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>✅</div>
+            <div style={{ fontSize: "4rem", marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
+              <FiCheck size={64} color="#10b981" />
+            </div>
             <h1 style={{ color: "#10b981", marginBottom: "1rem" }}>
               ¡Orden Completada!
             </h1>
@@ -308,7 +314,8 @@ const CheckoutPage = () => {
             marginBottom: "1.5rem",
             border: "1px solid #fecaca"
           }}>
-            ⚠️ {error}
+            <FiAlertTriangle size={16} style={{ marginRight: "0.5rem" }} />
+            {error}
           </div>
         )}
 

@@ -6,6 +6,7 @@ import CategoryFilter from "./components/CategoryFilter";
 import ShoppingCart from "./components/ShoppingCart";
 import ClienteAuthModal from "./components/ClienteAuthModal";
 import useAuth from "../../hooks/useAuth";
+import { FiShoppingBag, FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 
 const CatalogoPage = () => {
   const { user, isClienteLoggedIn, logout } = useAuth();
@@ -187,8 +188,9 @@ const CatalogoPage = () => {
       <header style={headerStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <h1 style={{ fontSize: "2rem", fontWeight: "bold", color: "#111827", margin: 0 }}>
-              🛍️ Tienda Online
+            <h1 style={{ fontSize: "2rem", fontWeight: "bold", color: "#111827", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <FiShoppingBag size={32} color="#2563eb" />
+              Tienda Online
             </h1>
             <p style={{ color: "#6b7280", margin: "0.5rem 0 0 0" }}>
               Descubre nuestros productos
@@ -198,8 +200,9 @@ const CatalogoPage = () => {
             {isClienteLoggedIn() ? (
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
                 <div style={{ textAlign: "right" }}>
-                  <p style={{ margin: 0, color: "#111827", fontWeight: "600" }}>
-                    👤 {user?.nombre_usuario || user?.correo_electronico}
+                  <p style={{ margin: 0, color: "#111827", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <FiUser size={16} />
+                    {user?.nombre_usuario || user?.correo_electronico}
                   </p>
                   <p style={{ margin: 0, color: "#6b7280", fontSize: "0.875rem" }}>
                     Cliente
@@ -242,7 +245,7 @@ const CatalogoPage = () => {
                     boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)"
                   }}
                 >
-                  👤 Iniciar Sesión
+                  Iniciar Sesión
                 </button>
               </div>
             )}
@@ -285,7 +288,9 @@ const CatalogoPage = () => {
             borderRadius: "12px",
             boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
           }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🔍</div>
+            <div style={{ fontSize: "4rem", marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
+              <FiSearch size={64} color="#d1d5db" />
+            </div>
             <h3 style={{ color: "#6b7280", fontSize: "1.5rem", marginBottom: "0.5rem" }}>
               No se encontraron productos
             </h3>
@@ -311,7 +316,7 @@ const CatalogoPage = () => {
         style={cartButtonStyle}
         onClick={() => setShowCart(true)}
       >
-        <span>🛒</span>
+        <FiShoppingCart size={20} />
         <span>Carrito ({cart.reduce((acc, item) => acc + item.cantidad, 0)})</span>
       </button>
 

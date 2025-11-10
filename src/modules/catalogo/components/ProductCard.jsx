@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { getImageUrl, getPlaceholderUrl } from "../../../utils/imageUtils";
+import { FiImage, FiShoppingCart } from 'react-icons/fi';
 
 const ProductCard = ({ producto, onAddToCart }) => {
   const [imageError, setImageError] = useState(false);
@@ -145,6 +146,20 @@ const ProductCard = ({ producto, onAddToCart }) => {
             }}
           />
           </>
+        ) : imageError ? (
+          // Mostrar ícono cuando hay error de imagen
+          <div style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#64748b",
+            height: "100%",
+            textAlign: "center"
+          }}>
+            <FiImage size={40} />
+            <span style={{ fontSize: "0.75rem", marginTop: "0.5rem" }}>Sin imagen</span>
+          </div>
         ) : (
           // Imagen de placeholder o error
           <div style={{
@@ -168,13 +183,8 @@ const ProductCard = ({ producto, onAddToCart }) => {
               }}
               onError={(e) => {
                 // Si también falla el placeholder, mostrar icono
-                e.target.style.display = 'none';
-                e.target.parentElement.innerHTML = `
-                  <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: #64748b;">
-                    <span style="font-size: 2.5rem;">🖼️</span>
-                    <span style="font-size: 0.75rem; margin-top: 0.5rem;">Sin imagen</span>
-                  </div>
-                `;
+                setImageError(true);
+                setImageLoading(false);
               }}
             />
           </div>
@@ -262,7 +272,14 @@ const ProductCard = ({ producto, onAddToCart }) => {
           }
         }}
       >
-        {producto.stock > 0 ? "🛒 Agregar al carrito" : "Sin stock"}
+        {producto.stock > 0 ? (
+          <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <FiShoppingCart size={18} />
+            Agregar al carrito
+          </span>
+        ) : (
+          "Sin stock"
+        )}
       </button>
     </div>
   );

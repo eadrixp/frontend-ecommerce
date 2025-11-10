@@ -3,6 +3,17 @@ import { useNavigate } from "react-router-dom";
 import { getImageUrl } from "../../../utils/imageUtils";
 import useAuth from "../../../hooks/useAuth";
 import ClienteAuthModal from "./ClienteAuthModal";
+import { 
+  FiShoppingCart, 
+  FiX, 
+  FiPackage, 
+  FiMinus, 
+  FiPlus, 
+  FiTrash2, 
+  FiCreditCard, 
+  FiLock, 
+  FiCheck 
+} from 'react-icons/fi';
 
 const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
   const { isClienteLoggedIn, hasValidToken } = useAuth();
@@ -99,8 +110,9 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
         {/* Header */}
         <div style={headerStyle}>
           <div>
-            <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#111827", margin: 0 }}>
-              🛒 Carrito de Compras
+            <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#111827", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              <FiShoppingCart size={24} color="#2563eb" />
+              Carrito de Compras
             </h2>
             {/* Estado de autenticación */}
             <div style={{ marginTop: "0.5rem" }}>
@@ -112,7 +124,8 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                   alignItems: "center",
                   gap: "0.25rem"
                 }}>
-                  ✅ Sesión iniciada
+                  <FiCheck size={16} />
+                  Sesión iniciada
                 </span>
               ) : (
                 <button
@@ -128,7 +141,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                     fontWeight: "500"
                   }}
                 >
-                  👤 Iniciar Sesión
+                  Iniciar Sesión
                 </button>
               )}
             </div>
@@ -143,7 +156,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
               color: "#6b7280"
             }}
           >
-            ❌
+            <FiX size={24} />
           </button>
         </div>
 
@@ -151,7 +164,9 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
         <div style={bodyStyle}>
           {cart.length === 0 ? (
             <div style={{ textAlign: "center", padding: "2rem", color: "#6b7280" }}>
-              <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>🛒</div>
+              <div style={{ fontSize: "4rem", marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
+                <FiShoppingCart size={64} color="#d1d5db" />
+              </div>
               <p style={{ fontSize: "1.2rem" }}>Tu carrito está vacío</p>
               <p>Agrega algunos productos para comenzar</p>
             </div>
@@ -191,7 +206,9 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                         }}
                       />
                     ) : (
-                      <span>📦</span>
+                      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", color: "#9ca3af" }}>
+                        <FiPackage size={32} />
+                      </div>
                     )}
                   </div>
 
@@ -235,7 +252,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                         justifyContent: "center"
                       }}
                     >
-                      ➖
+                      <FiMinus size={16} />
                     </button>
                     <span style={{
                       minWidth: "30px",
@@ -258,7 +275,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                         justifyContent: "center"
                       }}
                     >
-                      ➕
+                      <FiPlus size={16} />
                     </button>
                   </div>
 
@@ -274,7 +291,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                       padding: "0.5rem"
                     }}
                   >
-                    🗑️
+                    <FiTrash2 size={18} />
                   </button>
                 </div>
               ))}
@@ -322,7 +339,17 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                 e.currentTarget.style.backgroundColor = userIsLoggedIn() ? "#059669" : "#6b7280";
               }}
             >
-              {userIsLoggedIn() ? "💳 Proceder al Pago" : "🔒 Inicia sesión para comprar"}
+              {userIsLoggedIn() ? (
+                <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <FiCreditCard size={20} />
+                  Proceder al Pago
+                </span>
+              ) : (
+                <span style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <FiLock size={20} />
+                  Inicia sesión para comprar
+                </span>
+              )}
             </button>
           </div>
         )}
