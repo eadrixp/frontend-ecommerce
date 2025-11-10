@@ -81,6 +81,38 @@ export const loginCliente = async (correo_electronico, contrasena) => {
 };
 
 /**
+ * Crea el perfil de cliente para un usuario ya autenticado
+ * @param {Object} clienteData - Datos del cliente (id_usuario, nombre, apellido, telefono)
+ * @returns {Object} Datos del perfil creado
+ */
+export const createClienteProfile = async (clienteData) => {
+  try {
+    console.log('📤 Enviando datos para crear perfil de cliente:', clienteData);
+    const response = await apiClient.post('/clientes', clienteData);
+    
+    console.log('📥 Respuesta del servidor (crear perfil):', response.data);
+    
+    // Si la respuesta tiene la estructura {success, data}, extraer data
+    if (response.data?.success && response.data?.data) {
+      return response.data.data;
+    }
+    
+    // Si no, asumir que response.data ya contiene los datos del perfil
+    return response.data;
+  } catch (error) {
+    console.error('Error creando perfil de cliente:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
  * Obtiene el perfil del cliente logueado
  * @returns {Object} Datos del perfil del cliente
  */

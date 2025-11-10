@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { getProductos } from "../../services/productService";
 import ProductCard from "./components/ProductCard";
 import SearchBar from "./components/SearchBar";
 import CategoryFilter from "./components/CategoryFilter";
 import ShoppingCart from "./components/ShoppingCart";
-import ClienteAuthModal from "./components/ClienteAuthModal";
 import useAuth from "../../hooks/useAuth";
 import { FiShoppingBag, FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
 
 const CatalogoPage = () => {
   const { user, isClienteLoggedIn, logout } = useAuth();
+  const navigate = useNavigate();
   const [productos, setProductos] = useState([]);
   const [filteredProductos, setFilteredProductos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +18,6 @@ const CatalogoPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
-  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Cargar productos
   useEffect(() => {
@@ -108,7 +108,7 @@ const CatalogoPage = () => {
 
   // Función para abrir el modal de autenticación
   const handleShowLogin = () => {
-    setShowAuthModal(true);
+    navigate('/', { state: { returnPath: '/catalogo' } });
   };
 
   const headerStyle = {
@@ -190,7 +190,7 @@ const CatalogoPage = () => {
           <div>
             <h1 style={{ fontSize: "2rem", fontWeight: "bold", color: "#111827", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
               <FiShoppingBag size={32} color="#2563eb" />
-              Tienda Online
+              Nexxus Tecnology
             </h1>
             <p style={{ color: "#6b7280", margin: "0.5rem 0 0 0" }}>
               Descubre nuestros productos
@@ -225,9 +225,9 @@ const CatalogoPage = () => {
               </div>
             ) : (
               <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <span style={{ color: "#6b7280" }}>
+                {/*<span style={{ color: "#6b7280" }}>
                   {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''}
-                </span>
+                </span>*/}
                 <button
                   onClick={handleShowLogin}
                   style={{
@@ -327,15 +327,6 @@ const CatalogoPage = () => {
           onClose={() => setShowCart(false)}
           onRemove={removeFromCart}
           onUpdateQuantity={updateQuantity}
-        />
-      )}
-
-      {/* Modal de autenticación */}
-      {showAuthModal && (
-        <ClienteAuthModal
-          isOpen={showAuthModal}
-          onClose={() => setShowAuthModal(false)}
-          returnPath="/catalogo"
         />
       )}
 

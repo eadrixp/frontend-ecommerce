@@ -3,6 +3,8 @@ import { Routes, Route, Navigate } from "react-router-dom";
 
 // Páginas
 import LoginPage from "./modules/auth/LoginPage";
+import UserRegisterPage from "./modules/auth/UserRegisterPage";
+import ClienteRegisterPage from "./modules/auth/ClienteRegisterPage";
 import DashboardPage from "./modules/dashboard/DashboardPage";
 import ProductosPage from "./modules/products/ProductoPage";
 import ClientesPage from "./modules/clientes/ClientesPage"; // tu página real de clientes
@@ -20,6 +22,12 @@ function App() {
     <Routes>
       {/* Página principal (login) */}
       <Route path="/" element={<LoginPage />} />
+      
+      {/* Registro de usuario inicial */}
+      <Route path="/auth/register" element={<UserRegisterPage />} />
+      
+      {/* Registro de perfil de cliente */}
+      <Route path="/cliente/registro" element={<ClienteRegisterPage />} />
       
       {/* Catálogo público para clientes */}
       <Route path="/catalogo" element={<CatalogoPage />} />

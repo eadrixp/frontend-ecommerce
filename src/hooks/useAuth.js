@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { getToken, saveToken, removeToken } from "../utils/storage";
 import { useNavigate } from "react-router-dom";
-import { isCliente, isAdmin, getClienteProfile } from "../services/clienteAuthService";
+import { isCliente, isAdmin, getClienteProfile, createClienteProfile } from "../services/clienteAuthService";
 
 const AuthContext = createContext();
 
@@ -106,6 +106,26 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Crear perfil de cliente
+  const createClientProfile = async (clienteData) => {
+    try {
+      console.log('📝 Creando perfil de cliente...', clienteData);
+      const profileData = await createClienteProfile(clienteData);
+      console.log('✅ Perfil de cliente creado exitosamente:', profileData);
+      
+      // Actualizar el estado del usuario con el nuevo perfil
+      setUser(prevUser => ({
+        ...prevUser,
+        clienteProfile: profileData
+      }));
+      
+      return profileData;
+    } catch (error) {
+      console.error('❌ Error creando perfil de cliente:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const stored = getToken();
     if (stored) {
@@ -127,7 +147,8 @@ export const AuthProvider = ({ children }) => {
       hasValidToken,
       isClienteLoggedIn,
       isAdminLoggedIn,
-      loadUserProfile
+      loadUserProfile,
+      createClientProfile
     }}>
       {children}
     </AuthContext.Provider>

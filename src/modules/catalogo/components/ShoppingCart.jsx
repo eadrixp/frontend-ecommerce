@@ -1,8 +1,7 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
 import { getImageUrl } from "../../../utils/imageUtils";
 import useAuth from "../../../hooks/useAuth";
-import ClienteAuthModal from "./ClienteAuthModal";
 import { 
   FiShoppingCart, 
   FiX, 
@@ -18,7 +17,6 @@ import {
 const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
   const { isClienteLoggedIn, hasValidToken } = useAuth();
   const navigate = useNavigate();
-  const [showAuthModal, setShowAuthModal] = useState(false);
   const overlayStyle = {
     position: "fixed",
     top: 0,
@@ -83,7 +81,7 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
   };
 
   const handleLogin = () => {
-    setShowAuthModal(true);
+    navigate('/', { state: { returnPath: '/catalogo' } });
   };
 
   const handleCheckout = () => {
@@ -354,13 +352,6 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
           </div>
         )}
       </div>
-
-      {/* Modal de autenticación */}
-      <ClienteAuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        returnPath="/catalogo"
-      />
     </div>
   );
 };

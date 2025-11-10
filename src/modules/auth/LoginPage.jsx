@@ -1,16 +1,20 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { login } from "../../services/authService";
-import { loginCliente } from "../../services/clienteAuthService";
+import { loginCliente, getClienteProfile } from "../../services/clienteAuthService";
 import useAuth from "../../hooks/useAuth";
 
 const LoginPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setToken } = useAuth();
   const [form, setForm] = useState({ correo_electronico: "", contrasena: "" });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  
+  // Obtener la ruta de retorno del state (si viene de redirect)
+  const returnPath = location.state?.returnPath;
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -45,10 +49,22 @@ const LoginPage = () => {
         data = await loginCliente(form.correo_electronico, form.contrasena);
         
         if (data?.token) {
-          setToken(data.token);
-          setTimeout(() => {
-            navigate("/catalogo");
-          }, 500);
+          setToken(data.token, data.user || data);
+          
+          // Verificar si el cliente tiene perfil completo
+          try {
+            await getClienteProfile();
+            // Si tiene perfil, redirigir al catálogo o ruta de retorno
+            setTimeout(() => {
+              navigate(returnPath || "/catalogo");
+            }, 500);
+          } catch (profileError) {
+            // Si no tiene perfil de cliente, redirigir a completar perfil
+            console.log("Cliente sin perfil completo, redirigiendo a registro...");
+            setTimeout(() => {
+              navigate("/cliente/registro");
+            }, 500);
+          }
           return;
         }
       } catch (clienteError) {
@@ -235,8 +251,8 @@ const LoginPage = () => {
             backgroundClip: "text",
             filter: "drop-shadow(2px 2px 4px rgba(0,0,0,0.1))"
           }}>🛍️</div>
-          <h1 style={titleStyle}>E-Commerce GT</h1>
-          <p style={subtitleStyle}>Gestiona tu negocio desde aquí</p>
+          <h1 style={titleStyle}>Nexxus Tecnology</h1>
+          <p style={subtitleStyle}>¡Bienvenido!</p>
           
           {/* Indicador visual */}
           <div style={{
@@ -379,22 +395,29 @@ const LoginPage = () => {
                 e.target.style.textDecoration = "none";
               }}
             >
-              Ver catálogo como invitado →
+              Ver catálogo como invitado
             </Link>
           </div>
-
-          <div style={{ 
-            textAlign: "center", 
-            marginTop: "1rem",
-            paddingTop: "1rem",
-            borderTop: "1px solid #e5e7eb"
-          }}>
+          
+          <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
             <p style={{ 
               fontSize: "0.875rem", 
               color: "#6b7280", 
-              margin: 0 
+              margin: "0"
             }}>
-              ¿No tienes cuenta? Contacta al administrador
+              ¿No tienes cuenta?{" "}
+              <Link
+                to="/auth/register"
+                style={linkStyle}
+                onMouseEnter={(e) => {
+                  e.target.style.textDecoration = "underline";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.textDecoration = "none";
+                }}
+              >
+                Registrarse
+              </Link>
             </p>
           </div>
         </form>
