@@ -1,4 +1,6 @@
-const ProductoTable = ({ productos }) => {
+import React from "react";
+
+const ProductoTable = ({ productos, onEdit, onDelete }) => {
   return (
     <div
       style={{
@@ -15,7 +17,7 @@ const ProductoTable = ({ productos }) => {
             <th style={{ padding: "0.75rem", textAlign: "left" }}>Nombre</th>
             <th style={{ padding: "0.75rem", textAlign: "left" }}>Precio</th>
             <th style={{ padding: "0.75rem", textAlign: "left" }}>Stock</th>
-            <th style={{ padding: "0.75rem", textAlign: "left" }}>Activo</th>
+            <th style={{ padding: "0.75rem", textAlign: "center" }}>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -25,8 +27,34 @@ const ProductoTable = ({ productos }) => {
               <td style={{ padding: "0.5rem" }}>{p.nombre_producto}</td>
               <td style={{ padding: "0.5rem" }}>Q{p.precio}</td>
               <td style={{ padding: "0.5rem" }}>{p.stock}</td>
-              <td style={{ padding: "0.5rem" }}>
-                {p.activo ? "✅" : "❌"}
+              <td style={{ padding: "0.5rem", textAlign: "center" }}>
+                <button
+                  onClick={() => onEdit(p)}
+                  style={{
+                    backgroundColor: "#2563eb",
+                    color: "#fff",
+                    border: "none",
+                    padding: "6px 10px",
+                    marginRight: "6px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                Editar
+                </button>
+                <button
+                  onClick={() => onDelete(p.id_producto)}
+                  style={{
+                    backgroundColor: "#f44336",
+                    color: "#fff",
+                    border: "none",
+                    padding: "6px 10px",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Eliminar
+                </button>
               </td>
             </tr>
           ))}

@@ -148,7 +148,7 @@ const CategoriasPage = () => {
                       setShowModal(true);
                     }}
                     style={{
-                      backgroundColor: "#17a2b8", // 💙 Celeste (info)
+                      backgroundColor: "#2563eb", 
                       border: "none",
                       color: "white",
                       borderRadius: "5px",

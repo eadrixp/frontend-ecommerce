@@ -24,7 +24,7 @@ const DashboardLayout = ({ children }) => {
     width: "250px",
     backgroundColor: "#1f2937",
     color: "#fff",
-    height: "110avh",
+    height: "100vh",
     display: "flex",
     flexDirection: "column",
     padding: "20px",

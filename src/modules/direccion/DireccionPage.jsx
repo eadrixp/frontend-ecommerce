@@ -158,7 +158,7 @@ const DireccionPage = () => {
                       setShowModal(true);
                     }}
                     style={{
-                      backgroundColor: "#17a2b8",
+                      backgroundColor: "#2563eb",
                       border: "none",
                       borderRadius: "5px",
                       padding: "5px 10px",

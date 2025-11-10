@@ -18,7 +18,7 @@ const ProductoForm = ({ onClose }) => {
     const fetchCategorias = async () => {
       try {
         const categoriasData = await getCategorias();
-        console.log("📦 Categorías recibidas:", categoriasData);
+        console.log(" Categorías recibidas:", categoriasData);
         setCategorias(categoriasData);
       } catch (err) {
         console.error("Error al obtener categorías:", err);
@@ -37,11 +37,11 @@ const ProductoForm = ({ onClose }) => {
     e.preventDefault();
     try {
       await createProducto(form);
-      alert("✅ Producto creado exitosamente");
+      alert(" Producto creado exitosamente");
       onClose();
     } catch (err) {
       console.error(err);
-      alert("❌ Error al crear el producto");
+      alert(" Error al crear el producto");
     }
   };
 
