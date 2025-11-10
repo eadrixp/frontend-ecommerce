@@ -1,5 +1,5 @@
 // Configuración de la base URL del servidor
-const BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000';
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 /**
  * Construye la URL completa de una imagen

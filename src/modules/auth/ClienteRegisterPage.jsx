@@ -15,10 +15,66 @@ const ClienteRegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    
+    if (name === 'telefono') {
+      // Formatear teléfono automáticamente para Guatemala
+      const formatted = formatPhoneNumber(value, formData.telefono);
+      setFormData({
+        ...formData,
+        [name]: formatted
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value
+      });
+    }
+  };
+
+  const formatPhoneNumber = (newValue, oldValue = '') => {
+    // Remover todo excepto números del nuevo valor
+    const newNumbers = newValue.replace(/\D/g, '');
+    const oldNumbers = oldValue.replace(/\D/g, '');
+    
+    // Si está vacío, retornar vacío (permite borrar todo)
+    if (!newNumbers) return '';
+    
+    // Detectar si el usuario está borrando: si tenía más números antes y ahora tiene menos
+    const isDeleting = oldNumbers.length > newNumbers.length;
+    
+    // Si está borrando y solo quedan los números "502", permitir borrar todo
+    if (isDeleting && newNumbers === '502') {
+      return '';
+    }
+    
+    // Si los números son exactamente "502" y no está borrando, mantener el formato base
+    if (newNumbers === '502' && !isDeleting) {
+      return '+502';
+    }
+    
+    // En cuanto hay cualquier número adicional al 502, formatear normalmente
+    let formatted = newNumbers;
+    if (!formatted.startsWith('502')) {
+      formatted = '502' + formatted;
+    }
+    
+    // Limitar a 11 dígitos máximo (502 + 8 dígitos)
+    formatted = formatted.slice(0, 11);
+    
+    // Aplicar formato +502 0000-0000
+    const countryCode = formatted.slice(0, 3); // 502
+    const rest = formatted.slice(3);
+    
+    if (rest.length === 0) {
+      return `+${countryCode}`;
+    } else if (rest.length <= 4) {
+      return `+${countryCode} ${rest}`;
+    } else {
+      const firstPart = rest.slice(0, 4);
+      const secondPart = rest.slice(4);
+      return `+${countryCode} ${firstPart}-${secondPart}`;
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -33,14 +89,39 @@ const ClienteRegisterPage = () => {
       return;
     }
 
+    // Validar formato de teléfono (debe tener al menos +502 y 8 dígitos más)
+    const phoneNumbers = formData.telefono.replace(/\D/g, '');
+    if (phoneNumbers.length < 11 || !phoneNumbers.startsWith('502')) {
+      setError("El teléfono debe tener el formato completo (+502 0000-0000)");
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      // Crear el perfil de cliente
+      // Debug: Verificar datos del usuario y token
+      console.log('🔍 Debug - Usuario actual:', user);
+      console.log('🔍 Debug - Token disponible:', !!user);
+      
+      // Verificar token en localStorage
+      const token = localStorage.getItem('auth_token');
+      console.log('🔍 Debug - Token en localStorage:', token ? 'Exists' : 'Missing');
+      console.log('🔍 Debug - Token length:', token?.length);
+      
+      if (!user) {
+        setError("Error: No se encontró la información del usuario. Por favor, inicia sesión nuevamente.");
+        setIsLoading(false);
+        return;
+      }
+      
+      // Crear el perfil de cliente - Solo enviar campos que espera el backend
       const clienteData = {
-        id_usuario: user.id,
         nombre: formData.nombre.trim(),
         apellido: formData.apellido.trim(),
         telefono: formData.telefono.trim()
       };
+
+      console.log('📝 Datos que se enviarán al backend:', clienteData);
+      console.log('📝 URL del endpoint:', '/api/clientes');
 
       console.log('📝 Creando perfil de cliente:', clienteData);
       await createClientProfile(clienteData);
@@ -49,7 +130,7 @@ const ClienteRegisterPage = () => {
       navigate('/catalogo');
     } catch (error) {
       console.error('❌ Error al crear perfil de cliente:', error);
-      setError(error.response?.data?.message || "Error al crear el perfil de cliente");
+      setError(error.response?.data?.message || error.message || "Error al crear el perfil de cliente");
     } finally {
       setIsLoading(false);
     }
@@ -238,11 +319,15 @@ const ClienteRegisterPage = () => {
               value={formData.telefono}
               onChange={handleChange}
               style={inputStyle}
-              placeholder="+502 1234-5678"
+              placeholder="Ingresa 8 dígitos"
               onFocus={(e) => e.target.style.borderColor = "#2563eb"}
               onBlur={(e) => e.target.style.borderColor = "#e5e7eb"}
+              maxLength="15"
               required
             />
+            <p style={{ fontSize: "0.75rem", color: "#6b7280", margin: "0.25rem 0 0 0" }}>
+              Formato: +502 0000-0000 (se aplica automáticamente)
+            </p>
           </div>
 
           {error && (

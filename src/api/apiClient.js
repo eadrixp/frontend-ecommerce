@@ -2,7 +2,7 @@ import axios from "axios";
 import { getToken } from "../utils/storage";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:3000/api", // 🔧 cambia al dominio o puerto de tu backend
+  baseURL: process.env.REACT_APP_API_URL, // 🔧 cambia al dominio o puerto de tu backend
   headers: {
     "Content-Type": "application/json",
   },

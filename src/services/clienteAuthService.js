@@ -82,7 +82,7 @@ export const loginCliente = async (correo_electronico, contrasena) => {
 
 /**
  * Crea el perfil de cliente para un usuario ya autenticado
- * @param {Object} clienteData - Datos del cliente (id_usuario, nombre, apellido, telefono)
+ * @param {Object} clienteData - Datos del cliente (nombre, apellido, telefono)
  * @returns {Object} Datos del perfil creado
  */
 export const createClienteProfile = async (clienteData) => {
@@ -101,11 +101,21 @@ export const createClienteProfile = async (clienteData) => {
     return response.data;
   } catch (error) {
     console.error('Error creando perfil de cliente:', error);
+    console.error('❌ Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      serverData: error.response?.data,
+      url: error.config?.url,
+      method: error.config?.method
+    });
+    
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;
       throw new Error(msg);
     } else if (error.request) {
+      console.error('❌ No response received:', error.request);
       throw new Error('No se recibió respuesta del servidor');
     }
     throw new Error(error.message || 'Error desconocido en la solicitud');
