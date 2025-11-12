@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
-import {
-  getProductos,
-  deleteProducto,
-} from "../../services/productService";
+import { getProductos, deleteProducto } from "../../services/productService";
 import ProductoTable from "./ProductoTable";
 import ProductoForm from "./ProductoForm";
+import PageHeader from "../../components/layout/Header"; // ✅ Import correcto
 
 const ProductosPage = () => {
   const [productos, setProductos] = useState([]);
@@ -34,13 +32,11 @@ const ProductosPage = () => {
 
   // 🔹 Eliminar producto
   const handleDelete = async (id) => {
-    const confirm = window.confirm(
-      "¿Seguro que deseas eliminar este producto?"
-    );
+    const confirm = window.confirm("¿Seguro que deseas eliminar este producto?");
     if (confirm) {
       try {
         await deleteProducto(id);
-        fetchProductos(); // recargar lista
+        fetchProductos();
       } catch (err) {
         console.error("Error al eliminar producto:", err);
       }
@@ -51,46 +47,25 @@ const ProductosPage = () => {
   const handleCloseForm = () => {
     setShowForm(false);
     setProductoEdit(null);
-    fetchProductos(); // recargar lista después de guardar/editar
+    fetchProductos();
   };
 
   return (
     <DashboardLayout>
       <div style={{ padding: "2rem" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
+        {/* ✅ HEADER DINÁMICO */}
+        <PageHeader
+          title="Gestión de Productos"
+          onAdd={() => {
+            setShowForm(!showForm);
+            setProductoEdit(null);
           }}
-        >
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-            Gestión de Productos
-          </h2>
-          <button
-            onClick={() => {
-              setShowForm(!showForm);
-              setProductoEdit(null); // limpiar edición si se abre nuevo formulario
-            }}
-            style={{
-              backgroundColor: "#2563eb",
-              color: "white",
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            {showForm ? "Cerrar" : "+ Nuevo Producto"}
-          </button>
-        </div>
+          showForm={showForm}
+          addButtonLabel="+ Nuevo Producto"
+        />
 
         {showForm ? (
-          <ProductoForm
-            productoEdit={productoEdit}
-            onClose={handleCloseForm}
-          />
+          <ProductoForm productoEdit={productoEdit} onClose={handleCloseForm} />
         ) : (
           <ProductoTable
             productos={productos}

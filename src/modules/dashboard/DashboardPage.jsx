@@ -137,20 +137,7 @@ const DashboardPage = () => {
               Rol: {user?.rol?.nombre_rol} | {user?.correo_electronico}
             </p>
           </div>
-          <button 
-            onClick={logout}
-            style={{
-              backgroundColor: "#dc2626",
-              color: "white",
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              fontWeight: "500"
-            }}
-          >
-            Cerrar Sesión
-          </button>
+          
         </div>
       </div>
 
