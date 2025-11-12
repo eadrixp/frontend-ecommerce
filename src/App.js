@@ -12,6 +12,7 @@ import CategoriasPage from "./modules/categories/CategoirasPage"; // tu página 
 import DireccionPage from "./modules/direccion/DireccionPage";
 import CatalogoPage from "./modules/catalogo/CatalogoPage";
 import CheckoutPage from "./modules/checkout/CheckoutPage";
+import UsuariosList from "./modules/usuarios/UsuariosList";
 
 // Componentes
 import PrivateRoute from "./components/PrivateRoute";
@@ -58,9 +59,9 @@ function App() {
         <Route
           path="/clientes"
           element={
-            <DashboardLayout>
+            
               <ClientesPage />
-            </DashboardLayout>
+            
           }
         />
 
@@ -80,7 +81,18 @@ function App() {
             </DashboardLayout>
           }
         />
+
+        <Route
+          path="/usuarios"
+          element={
+            <DashboardLayout>
+              <UsuariosList />
+            </DashboardLayout>
+          }
+        />
       </Route>
+
+      
 
       {/* Redirección por defecto */}
       <Route path="*" element={<Navigate to="/" />} />
