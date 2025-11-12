@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
+import { FiHome, FiShoppingCart, FiUsers, FiLayers, FiMapPin, FiUser } from "react-icons/fi";
 import useAuth from "../../hooks/useAuth";
 import { getProfile } from "../../api/authService";
 
@@ -22,7 +23,7 @@ const DashboardLayout = ({ children }) => {
 
   const sidebarStyle = {
     width: "250px",
-    backgroundColor: "#1f2937",
+    backgroundColor: "#6d4ed3ff",
     color: "#fff",
     height: "100vh",
     display: "flex",
@@ -46,10 +47,17 @@ const DashboardLayout = ({ children }) => {
     transition: "all 0.2s",
   };
 
+  const iconStyle = {
+    marginRight: 10,
+    display: "inline-block",
+    verticalAlign: "middle",
+    fontSize: 18,
+  };
+
   const linkActiveStyle = {
     color: "#fff",
     fontWeight: "bold",
-    backgroundColor: "#374151",
+    backgroundColor: "#7d54ddff",
     boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
   };
 
@@ -61,11 +69,11 @@ const DashboardLayout = ({ children }) => {
   const contentStyle = {
     flex: 1,
     backgroundColor: "#f9fafb",
-    padding: "20px",
+    padding: "0px",
   };
 
   const logoutButtonStyle = {
-    backgroundColor: "#ef4444",
+    backgroundColor: "#542f5edf",
     color: "#fff",
     border: "none",
     padding: "10px",
@@ -87,7 +95,7 @@ const DashboardLayout = ({ children }) => {
 
           {user && (
             <p style={{ marginBottom: "20px", fontWeight: "bold" }}>
-              👤 {user.nombre_usuario}
+               {user.nombre_usuario}
             </p>
           )}
 
@@ -98,47 +106,89 @@ const DashboardLayout = ({ children }) => {
                 isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
               }
             >
-              Inicio
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiHome style={iconStyle} /> Inicio
+              </span>
             </NavLink>
+
             <NavLink
               to="/productos"
               style={({ isActive }) =>
                 isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
               }
             >
-              Productos
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiShoppingCart style={iconStyle} /> Productos
+              </span>
             </NavLink>
+
             <NavLink
               to="/clientes"
               style={({ isActive }) =>
                 isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
               }
             >
-              Clientes
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiUsers style={iconStyle} /> Clientes
+              </span>
             </NavLink>
+
             <NavLink
               to="/categorias"
               style={({ isActive }) =>
                 isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
               }
             >
-              Categorías
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiLayers style={iconStyle} /> Categorías
+              </span>
             </NavLink>
+
             <NavLink
               to="/direcciones"
               style={({ isActive }) =>
                 isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
               }
             >
-              Direcciones
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiMapPin style={iconStyle} /> Direcciones
+              </span>
+            </NavLink>
+
+            <NavLink
+              to="/usuarios"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiUser style={iconStyle} /> Usuarios
+              </span>
             </NavLink>
           </nav>
         </div>
 
+        {/*{user && (
+          <div
+            style={{
+              marginBottom: 10,
+              textAlign: "center",
+              color: "#fff",
+              backgroundColor: "rgba(255,255,255,0.06)",
+              padding: "8px 12px",
+              borderRadius: "8px",
+              width: "100%",
+              boxSizing: "border-box",
+            }}
+          >
+            <div style={{ fontWeight: 700 }}>{user.nombre_usuario}</div>
+          </div>
+        )}*/}
+
         <button
           style={logoutButtonStyle}
-          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#dc2626")}
-          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#ef4444")}
+          onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#8d6be4ff")}
+          onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#7d54ddff")}
           onClick={logout}
         >
           🚪 Cerrar sesión

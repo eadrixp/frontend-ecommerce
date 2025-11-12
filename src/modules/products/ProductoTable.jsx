@@ -1,4 +1,5 @@
 import React from "react";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
 
 const ProductoTable = ({ productos, onEdit, onDelete }) => {
   return (
@@ -30,20 +31,25 @@ const ProductoTable = ({ productos, onEdit, onDelete }) => {
               <td style={{ padding: "0.5rem", textAlign: "center" }}>
                 <button
                   onClick={() => onEdit(p)}
+                  title="Editar producto"
                   style={{
-                    backgroundColor: "#2563eb",
+                    backgroundColor: "#7a61ebff",
                     color: "#fff",
                     border: "none",
                     padding: "6px 10px",
                     marginRight: "6px",
                     borderRadius: "6px",
                     cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                Editar
+                  <FiEdit size={18} />
                 </button>
                 <button
                   onClick={() => onDelete(p.id_producto)}
+                  title="Eliminar producto"
                   style={{
                     backgroundColor: "#f44336",
                     color: "#fff",
@@ -51,9 +57,12 @@ const ProductoTable = ({ productos, onEdit, onDelete }) => {
                     padding: "6px 10px",
                     borderRadius: "6px",
                     cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  Eliminar
+                  <FiTrash2 size={18} />
                 </button>
               </td>
             </tr>
