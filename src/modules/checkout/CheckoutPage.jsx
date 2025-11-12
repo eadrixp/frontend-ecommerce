@@ -710,18 +710,18 @@ const CheckoutPage = () => {
         {step === 2 && (
           <div>
             <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
-              Información de Pago
+              Información de pago
             </h2>
 
             <div style={formGroupStyle}>
-              <label style={labelStyle}>Método de Pago:</label>
+              <label style={labelStyle}>Método de pago:</label>
               <select
                 value={paymentData.metodo_pago}
                 onChange={(e) => setPaymentData({...paymentData, metodo_pago: e.target.value})}
                 style={inputStyle}
               >
-                <option value="tarjeta_credito">Tarjeta de Crédito</option>
-                <option value="tarjeta_debito">Tarjeta de Débito</option>
+                <option value="tarjeta_credito">Tarjeta de crédito</option>
+                <option value="tarjeta_debito">Tarjeta de débito</option>
                 <option value="paypal">PayPal</option>
               </select>
             </div>
