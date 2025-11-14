@@ -7,7 +7,7 @@ import apiClient from '../api/apiClient';
  */
 export const addToCart = async (cartItem) => {
   try {
-    console.log('🛒 Agregando al carrito:', cartItem);
+    console.log(' Agregando al carrito:', cartItem);
     const response = await apiClient.post('/carrito', cartItem);
     return response.data;
   } catch (error) {

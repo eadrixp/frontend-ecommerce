@@ -175,13 +175,13 @@ const DashboardPage = () => {
         </h2>
         <div style={{ textAlign: "center" }}>
           <Link to="/productos" style={quickActionStyle}>
-            📦 Gestionar Productos
+             Gestionar Productos
           </Link>
           <Link to="/clientes" style={quickActionStyle}>
-            👥 Ver Clientes
+             Ver Clientes
           </Link>
           <Link to="/categorias" style={quickActionStyle}>
-            📋 Categorías
+             Categorías
           </Link>
           
         </div>
@@ -211,7 +211,7 @@ const DashboardPage = () => {
             border: "1px solid #e2e8f0"
           }}>
             <h4 style={{ color: "#1e40af", marginBottom: "0.5rem", fontSize: "1rem" }}>
-              📊 Estado del Inventario
+               Estado del Inventario
             </h4>
             <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>
               {stats.productos} productos activos distribuidos en {stats.categorias} categorías diferentes
@@ -225,7 +225,7 @@ const DashboardPage = () => {
             border: "1px solid #bbf7d0"
           }}>
             <h4 style={{ color: "#059669", marginBottom: "0.5rem", fontSize: "1rem" }}>
-              💰 Valor del Negocio
+               Valor del Negocio
             </h4>
             <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>
               Inventario valorizado en {formatPrice(stats.valorInventario)}

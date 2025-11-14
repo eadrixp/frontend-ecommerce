@@ -6,7 +6,7 @@ import {
 } from "../../services/clientesService";
 import TableClientes from "../clientes/TableClientes";
 import ClienteForm from "../clientes/FormClientes";
-import PageHeader from "../../components/layout/Header"; // ✅ Import del header
+import PageHeader from "../../components/layout/Header"; 
 
 const ClientesPage = () => {
   const [clientes, setClientes] = useState([]);
@@ -48,7 +48,7 @@ const ClientesPage = () => {
     <DashboardLayout>
       <div style={{ padding: "2rem" }}>
 
-        {/* 🔹 HEADER EXACTO IGUAL AL DE PRODUCTOS */}
+        {/*  HEADER  */}
         <PageHeader
           title="Gestión de Clientes"
           onAdd={() => {
@@ -59,7 +59,7 @@ const ClientesPage = () => {
           addButtonLabel="+ Nuevo Cliente"
         />
 
-        {/* 🔹 TABLA O FORMULARIO */}
+        {/* TABLA  */}
         {!showForm ? (
           <TableClientes
             clientes={clientes}

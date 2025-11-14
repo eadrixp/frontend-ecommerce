@@ -7,7 +7,7 @@ import apiClient from '../api/apiClient';
 export const getPaymentMethods = async () => {
   try {
     const response = await apiClient.get('/metodos-pago/online');
-    console.log('✅ Métodos de pago obtenidos:', response.data);
+    console.log(' Métodos de pago obtenidos:', response.data);
     
     // Filtrar solo los métodos activos y disponibles online
     const activePaymentMethods = response.data.data.filter(method => 
@@ -22,7 +22,7 @@ export const getPaymentMethods = async () => {
       data: sortedMethods
     };
   } catch (error) {
-    console.error('❌ Error obteniendo métodos de pago:', error);
+    console.error(' Error obteniendo métodos de pago:', error);
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;
@@ -137,7 +137,7 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
 export const getClientPaymentMethods = async () => {
   try {
     const response = await apiClient.get('/metodos-pago-cliente');
-    console.log('✅ Métodos de pago del cliente obtenidos:', response.data);
+    console.log(' Métodos de pago del cliente obtenidos:', response.data);
     
     // La respuesta puede ser un objeto o un array
     let clientMethods = response.data.data;
@@ -152,7 +152,7 @@ export const getClientPaymentMethods = async () => {
       data: clientMethods
     };
   } catch (error) {
-    console.error('❌ Error obteniendo métodos de pago del cliente:', error);
+    console.error(' Error obteniendo métodos de pago del cliente:', error);
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;
@@ -172,14 +172,14 @@ export const getClientPaymentMethods = async () => {
 export const saveClientPaymentMethod = async (paymentMethodData) => {
   try {
     const response = await apiClient.post('/metodos-pago-cliente', paymentMethodData);
-    console.log('✅ Método de pago guardado exitosamente:', response.data);
+    console.log(' Método de pago guardado exitosamente:', response.data);
     
     return {
       success: true,
       data: response.data.data
     };
   } catch (error) {
-    console.error('❌ Error guardando método de pago:', error);
+    console.error(' Error guardando método de pago:', error);
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;

@@ -3,7 +3,7 @@ import DashboardLayout from "../../components/layout/DashboardLayout";
 import TableProveedores from "../proveedores/TableProveedores";
 import FormProveedores from "../proveedores/FormProveedores";
 import { getProveedores, deleteProveedor } from "../../services/proveedoresService";
-import PageHeader from "../../components/layout/Header"; // ✅ Header importado
+import PageHeader from "../../components/layout/Header"; 
 
 const ProveedoresPage = () => {
   const [proveedores, setProveedores] = useState([]);

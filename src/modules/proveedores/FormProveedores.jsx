@@ -27,7 +27,7 @@ const FormProveedores = ({ proveedorEdit, onClose }) => {
     }
   }, [proveedorEdit]);
 
-  // ✅ Formatear teléfono automáticamente (+502 XXXX-XXXX)
+  // Formatear teléfono automáticamente (+502 XXXX-XXXX)
   const formatPhoneNumber = (newValue, oldValue = "") => {
     const digits = newValue.replace(/\D/g, "");
     const prevDigits = oldValue.replace(/\D/g, "");
@@ -47,7 +47,7 @@ const FormProveedores = ({ proveedorEdit, onClose }) => {
     return `+${prefix} ${local.slice(0, 4)}-${local.slice(4)}`;
   };
 
-  // ✅ Formatear NIT automáticamente (XXXXXX-X)
+  // Formatear NIT automáticamente (XXXXXX-X)
   const formatNIT = (newValue) => {
     const digits = newValue.replace(/\D/g, "");
     if (!digits) return "";
@@ -72,7 +72,7 @@ const FormProveedores = ({ proveedorEdit, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Validaciones
+    // Validaciones
     const phonePattern = /^\+502\s?\d{4}-\d{4}$/;
     const nitPattern = /^\d{6}-\d{1}$/;
 

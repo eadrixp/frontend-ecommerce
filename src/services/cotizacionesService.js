@@ -1,7 +1,7 @@
 import apiClient from "../api/apiClient";
 
 /* ================================
-   📌 COTIZACIONES (CRUD)
+    COTIZACIONES (CRUD)
 ================================ */
 
 export const createCotizacion = async (data) => {
@@ -30,7 +30,7 @@ export const deleteCotizacion = async (id) => {
 };
 
 /* ================================
-   📌 OTRAS FUNCIONALIDADES 
+    OTRAS FUNCIONALIDADES 
 ================================ */
 
 export const generarNumeroCotizacion = async () => {
@@ -74,7 +74,7 @@ export const actualizarNotasTerminos = async (id, notasTerminos) => {
 };
 
 /* ================================
-   📌 ITEMS DE COTIZACIÓN
+    ITEMS DE COTIZACIÓN
 ================================ */
 
 // Agregar un item individual
@@ -132,7 +132,7 @@ export const vaciarCotizacion = async (idCotizacion) => {
 };
 
 /* ================================
-   📌 CONVERTIR A ORDEN
+    CONVERTIR A ORDEN
 ================================ */
 
 export const convertirEnOrden = async (idCotizacion) => {

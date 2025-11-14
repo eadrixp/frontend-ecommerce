@@ -18,7 +18,7 @@ const ClienteForm = ({ clienteEdit, onClose }) => {
     }
   }, [clienteEdit]);
 
-  // ✅ Formatear teléfono automáticamente para Guatemala
+  // Formatear teléfono automáticamente para Guatemala
   const formatPhoneNumber = (newValue, oldValue = "") => {
     const digits = newValue.replace(/\D/g, ""); // Solo números
     const prevDigits = oldValue.replace(/\D/g, "");
@@ -53,7 +53,7 @@ const ClienteForm = ({ clienteEdit, onClose }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Validar formato de teléfono
+    //  Validar formato de teléfono
     const phonePattern = /^\+502\s?\d{4}-\d{4}$/;
     if (!phonePattern.test(formData.telefono)) {
       alert("El teléfono debe tener el formato válido (+502 0000-0000)");

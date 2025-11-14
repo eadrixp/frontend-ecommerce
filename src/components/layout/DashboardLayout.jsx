@@ -4,6 +4,7 @@ import { FiHome, FiShoppingCart, FiUsers, FiLayers, FiMapPin, FiUser } from "rea
 import useAuth from "../../hooks/useAuth";
 import { getProfile } from "../../api/authService";
 
+
 const DashboardLayout = ({ children }) => {
   const { logout } = useAuth();
   const [user, setUser] = useState(null);
@@ -225,7 +226,7 @@ const DashboardLayout = ({ children }) => {
           onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#7d54ddff")}
           onClick={logout}
         >
-          🚪 Cerrar sesión
+           Cerrar sesión
         </button>
 
       </aside>

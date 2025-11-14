@@ -3,7 +3,7 @@ import DashboardLayout from "../../components/layout/DashboardLayout";
 import { getProductos, deleteProducto } from "../../services/productService";
 import ProductoTable from "./ProductoTable";
 import ProductoForm from "./ProductoForm";
-import PageHeader from "../../components/layout/Header"; // ✅ Import correcto
+import PageHeader from "../../components/layout/Header"; 
 
 const ProductosPage = () => {
   const [productos, setProductos] = useState([]);
@@ -53,7 +53,7 @@ const ProductosPage = () => {
   return (
     <DashboardLayout>
       <div style={{ padding: "2rem" }}>
-        {/* ✅ HEADER DINÁMICO */}
+        {/*  HEADER */}
         <PageHeader
           title="Gestión de Productos"
           onAdd={() => {
