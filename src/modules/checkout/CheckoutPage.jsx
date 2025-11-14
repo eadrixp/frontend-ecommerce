@@ -3,10 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { createAddress, getAddresses, updateAddress, deleteAddress } from "../../services/addressService";
 import { createOrder } from "../../services/orderService";
-import { 
-  getPaymentMethods, 
-  validatePaymentData
-} from "../../services/paymentService";
+import { validatePaymentData } from "../../services/paymentService";
 import PaymentForm from "./components/PaymentForm";
 import { 
   FiAlertTriangle,
@@ -46,7 +43,6 @@ const CheckoutPage = () => {
   });
 
   // Payment states
-  const [paymentMethods, setPaymentMethods] = useState([]);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [paymentData, setPaymentData] = useState({
     numero_tarjeta: "",
@@ -54,33 +50,26 @@ const CheckoutPage = () => {
     cvv: "",
     fecha_expiracion: "",
     tipo_tarjeta: "",
+    banco: "",
     email_paypal: "",
     banco_origen: "",
     numero_cuenta: "",
     titular_cuenta: "",
+    numero_transaccion: "",
+    wallet_address: "",
     entrega: "contra_entrega"
   });
   
-  // Order data
-  const [orderNotes, setOrderNotes] = useState("");
+  // Payment errors
+  const [paymentErrors, setPaymentErrors] = useState({});
 
-  // Helper function
+  // Order data
+  const [orderNotes, setOrderNotes] = useState("");  // Helper function
   const getAddressId = (address) => {
     return address?.id || address?.id_direccion || address?.direccion_id;
   };
 
-  const loadPaymentMethods = useCallback(async () => {
-    try {
-      const response = await getPaymentMethods();
-      setPaymentMethods(response.data || []);
-      if (response.data && response.data.length > 0) {
-        setSelectedPaymentMethod(response.data[0]);
-      }
-    } catch (error) {
-      console.warn("Error cargando métodos de pago:", error);
-      setPaymentMethods([]);
-    }
-  }, []);
+
 
   const loadAddresses = useCallback(async () => {
     try {
@@ -112,8 +101,7 @@ const CheckoutPage = () => {
     }
     
     loadAddresses();
-    loadPaymentMethods();
-  }, [isClienteLoggedIn, cartItems, navigate, loadAddresses, loadPaymentMethods]);
+  }, [isClienteLoggedIn, cartItems, navigate, loadAddresses]);
 
   const openAddressModal = (address = null) => {
     if (address) {
@@ -240,8 +228,9 @@ const CheckoutPage = () => {
         return;
       }
       
-      if (selectedPaymentMethod.requiere_datos_adicionales) {
-        const validation = validatePaymentData(selectedPaymentMethod.nombre, paymentData);
+      // Validar datos según el método de pago seleccionado (todos excepto efectivo)
+      if (selectedPaymentMethod.tipo_metodo !== 'efectivo') {
+        const validation = validatePaymentData(selectedPaymentMethod.tipo_metodo, paymentData);
         if (!validation.isValid) {
           setError(validation.errors.join(", "));
           return;
@@ -260,7 +249,7 @@ const CheckoutPage = () => {
     try {
       const orderData = {
         direccion_id: selectedAddressId,
-        metodo_pago: selectedPaymentMethod?.nombre,
+        metodo_pago: selectedPaymentMethod?.tipo_metodo,
         productos: cartItems.map(item => ({
           producto_id: item.id,
           cantidad: item.cantidad,
@@ -559,14 +548,12 @@ const CheckoutPage = () => {
             </h2>
 
             <PaymentForm
-              paymentMethods={paymentMethods}
               selectedPaymentMethod={selectedPaymentMethod}
               onPaymentMethodChange={setSelectedPaymentMethod}
               paymentData={paymentData}
               onPaymentDataChange={setPaymentData}
-              formGroupStyle={formGroupStyle}
-              labelStyle={labelStyle}
-              inputStyle={inputStyle}
+              errors={paymentErrors}
+              setErrors={setPaymentErrors}
             />
 
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "2rem" }}>
@@ -676,28 +663,33 @@ const CheckoutPage = () => {
               {selectedPaymentMethod ? (
                 <div>
                   <p style={{ marginBottom: "0.5rem" }}>
-                    <strong>{selectedPaymentMethod.descripcion}</strong>
+                    <strong>{selectedPaymentMethod.nombre_metodo}</strong>
                   </p>
-                  {selectedPaymentMethod.nombre === 'tarjeta_credito' || selectedPaymentMethod.nombre === 'tarjeta_debito' ? (
+                  {selectedPaymentMethod.tipo_metodo === 'tarjeta_credito' || selectedPaymentMethod.tipo_metodo === 'tarjeta_debito' ? (
                     <div>
                       <p>**** **** **** {paymentData.numero_tarjeta.slice(-4)}</p>
                       <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
                         {paymentData.nombre_titular}
                       </p>
                     </div>
-                  ) : selectedPaymentMethod.nombre === 'paypal' ? (
+                  ) : selectedPaymentMethod.tipo_metodo === 'billetera_digital' ? (
                     <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
                       {paymentData.email_paypal}
                     </p>
-                  ) : selectedPaymentMethod.nombre === 'transferencia' ? (
+                  ) : selectedPaymentMethod.tipo_metodo === 'transferencia_bancaria' ? (
                     <div style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-                      <p>{paymentData.banco_origen}</p>
-                      <p>Cuenta: ***{paymentData.numero_cuenta.slice(-4)}</p>
+                      <p>Transferencia bancaria</p>
+                      <p>Transacción: {paymentData.numero_transaccion}</p>
                     </div>
-                  ) : selectedPaymentMethod.nombre === 'efectivo' ? (
+                  ) : selectedPaymentMethod.tipo_metodo === 'efectivo' ? (
                     <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
                       Pago contra entrega
                     </p>
+                  ) : selectedPaymentMethod.tipo_metodo === 'criptomoneda' ? (
+                    <div style={{ color: "#6b7280", fontSize: "0.9rem" }}>
+                      <p>Bitcoin</p>
+                      <p>Wallet: {paymentData.wallet_address.substring(0, 8)}...{paymentData.wallet_address.slice(-8)}</p>
+                    </div>
                   ) : null}
                 </div>
               ) : (

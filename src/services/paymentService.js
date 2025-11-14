@@ -6,15 +6,20 @@ import apiClient from '../api/apiClient';
  */
 export const getPaymentMethods = async () => {
   try {
-    const response = await apiClient.get('/metodos-pago');
+    const response = await apiClient.get('/metodos-pago/online');
     console.log('✅ Métodos de pago obtenidos:', response.data);
     
-    // Filtrar solo los métodos activos
-    const activePaymentMethods = response.data.data.filter(method => method.activo === true);
+    // Filtrar solo los métodos activos y disponibles online
+    const activePaymentMethods = response.data.data.filter(method => 
+      method.activo === true && method.disponible_online === true
+    );
+    
+    // Ordenar por orden_visualizacion
+    const sortedMethods = activePaymentMethods.sort((a, b) => a.orden_visualizacion - b.orden_visualizacion);
     
     return {
       success: true,
-      data: activePaymentMethods
+      data: sortedMethods
     };
   } catch (error) {
     console.error('❌ Error obteniendo métodos de pago:', error);
@@ -68,6 +73,33 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
       }
       break;
 
+    case 'billetera_digital': // PayPal
+      if (!paymentData.email_paypal) {
+        errors.push('Email de PayPal es requerido');
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paymentData.email_paypal)) {
+        errors.push('Email de PayPal inválido');
+      }
+      break;
+
+    case 'transferencia_bancaria':
+      if (!paymentData.numero_transaccion) {
+        errors.push('Número de transacción es requerido');
+      }
+      break;
+
+    case 'efectivo':
+      if (!paymentData.entrega) {
+        errors.push('Tipo de entrega es requerido');
+      }
+      break;
+
+    case 'criptomoneda': // Bitcoin
+      if (!paymentData.wallet_address) {
+        errors.push('Dirección de wallet es requerida');
+      }
+      break;
+
+    // Mantener compatibilidad con nombres anteriores
     case 'paypal':
       if (!paymentData.email_paypal) {
         errors.push('Email de PayPal es requerido');
@@ -88,12 +120,6 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
       }
       break;
 
-    case 'efectivo':
-      if (!paymentData.entrega) {
-        errors.push('Tipo de entrega es requerido');
-      }
-      break;
-
     default:
       errors.push('Método de pago no válido');
   }
@@ -102,6 +128,67 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
     isValid: errors.length === 0,
     errors
   };
+};
+
+/**
+ * Obtiene los métodos de pago guardados del cliente
+ * @returns {Array} Lista de métodos de pago del cliente
+ */
+export const getClientPaymentMethods = async () => {
+  try {
+    const response = await apiClient.get('/metodos-pago-cliente');
+    console.log('✅ Métodos de pago del cliente obtenidos:', response.data);
+    
+    // La respuesta puede ser un objeto o un array
+    let clientMethods = response.data.data;
+    
+    // Si es un solo método, convertir a array
+    if (!Array.isArray(clientMethods)) {
+      clientMethods = clientMethods ? [clientMethods] : [];
+    }
+    
+    return {
+      success: true,
+      data: clientMethods
+    };
+  } catch (error) {
+    console.error('❌ Error obteniendo métodos de pago del cliente:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
+ * Guarda un método de pago para el cliente
+ * @param {Object} paymentMethodData - Datos del método de pago a guardar
+ * @returns {Object} Método de pago guardado
+ */
+export const saveClientPaymentMethod = async (paymentMethodData) => {
+  try {
+    const response = await apiClient.post('/metodos-pago-cliente', paymentMethodData);
+    console.log('✅ Método de pago guardado exitosamente:', response.data);
+    
+    return {
+      success: true,
+      data: response.data.data
+    };
+  } catch (error) {
+    console.error('❌ Error guardando método de pago:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
 };
 
 /**

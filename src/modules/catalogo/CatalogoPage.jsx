@@ -110,7 +110,6 @@ const CatalogoPage = () => {
     } else {
       // Encontrar el producto original para verificar stock
       const producto = productos.find(p => p.id === productoId);
-      const cartItem = cart.find(item => item.id === productoId);
       
       if (producto && newQuantity > producto.stock) {
         alert(`No puedes agregar más de ${producto.stock} unidades de "${producto.nombre_producto}". Stock disponible: ${producto.stock}`);
