@@ -228,6 +228,18 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                     }}>
                       {formatPrice(item.precio)}
                     </p>
+                    {/* Indicador de stock */}
+                    <p style={{
+                      fontSize: "0.75rem",
+                      color: item.cantidad >= item.stock ? "#dc2626" : "#6b7280",
+                      margin: "0.25rem 0 0 0",
+                      fontWeight: item.cantidad >= item.stock ? "600" : "400"
+                    }}>
+                      {item.cantidad >= item.stock ? 
+                        `¡Stock máximo alcanzado!` : 
+                        `Stock disponible: ${item.stock}`
+                      }
+                    </p>
                   </div>
 
                   {/* Controles de cantidad */}
@@ -260,18 +272,28 @@ const ShoppingCart = ({ cart, onClose, onRemove, onUpdateQuantity }) => {
                       {item.cantidad}
                     </span>
                     <button
-                      onClick={() => onUpdateQuantity(item.id, item.cantidad + 1)}
+                      onClick={() => {
+                        // Verificar que no se exceda el stock disponible
+                        if (item.cantidad >= item.stock) {
+                          alert(`No puedes agregar más unidades. Stock disponible: ${item.stock}`);
+                          return;
+                        }
+                        onUpdateQuantity(item.id, item.cantidad + 1);
+                      }}
                       style={{
                         width: "32px",
                         height: "32px",
                         borderRadius: "50%",
                         border: "1px solid #d1d5db",
-                        backgroundColor: "#ffffff",
-                        cursor: "pointer",
+                        backgroundColor: item.cantidad >= item.stock ? "#f3f4f6" : "#ffffff",
+                        cursor: item.cantidad >= item.stock ? "not-allowed" : "pointer",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center"
+                        justifyContent: "center",
+                        opacity: item.cantidad >= item.stock ? 0.5 : 1
                       }}
+                      disabled={item.cantidad >= item.stock}
+                      title={item.cantidad >= item.stock ? `Stock máximo: ${item.stock}` : "Aumentar cantidad"}
                     >
                       <FiPlus size={16} />
                     </button>

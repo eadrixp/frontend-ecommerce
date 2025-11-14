@@ -1,206 +1,40 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import { createAddress, getAddresses, updateAddress } from "../../services/addressService";
-import { createOrder, processPayment } from "../../services/orderService";
+import { createAddress, getAddresses, updateAddress, deleteAddress } from "../../services/addressService";
+import { createOrder } from "../../services/orderService";
 import { 
-  FiCheck, 
+  getPaymentMethods, 
+  validatePaymentData
+} from "../../services/paymentService";
+import PaymentForm from "./components/PaymentForm";
+import { 
   FiAlertTriangle,
   FiX,
   FiEdit,
-  FiPlus
+  FiPlus,
+  FiTrash2
 } from 'react-icons/fi';
 
-// Address Modal Component - Moved outside to prevent re-creation on each render
-const AddressModal = ({ 
-  showAddressModal, 
-  closeAddressModal, 
-  editingAddress, 
-  addressForm, 
-  setAddressForm, 
-  handleAddressSubmit,
-  loading,
-  formGroupStyle,
-  labelStyle,
-  inputStyle,
-  primaryButtonStyle,
-  secondaryButtonStyle
-}) => {
-  if (!showAddressModal) return null;
-
-  // Modal styles
-  const modalOverlayStyle = {
-    position: "fixed",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 1000
-  };
-
-  const modalContentStyle = {
-    backgroundColor: "white",
-    borderRadius: "16px",
-    padding: "2rem",
-    width: "90%",
-    maxWidth: "500px",
-    maxHeight: "90vh",
-    overflow: "auto",
-    position: "relative"
-  };
-
-  const modalHeaderStyle = {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: "1.5rem",
-    borderBottom: "1px solid #e5e7eb",
-    paddingBottom: "1rem"
-  };
-
-  const closeButtonStyle = {
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    padding: "0.5rem",
-    borderRadius: "50%",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center"
-  };
-
-  return (
-    <div style={modalOverlayStyle} onClick={(e) => e.target === e.currentTarget && closeAddressModal()}>
-      <div style={modalContentStyle}>
-        <div style={modalHeaderStyle}>
-          <h2 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "bold" }}>
-            {editingAddress ? "Editar Dirección" : "Nueva Dirección"}
-          </h2>
-          <button onClick={closeAddressModal} style={closeButtonStyle}>
-            <FiX size={24} />
-          </button>
-        </div>
-
-        <form onSubmit={(e) => e.preventDefault()}>
-          <div style={formGroupStyle}>
-            <label style={labelStyle}>Dirección:</label>
-            <input
-              type="text"
-              placeholder="Ej: Avenida Siempre Viva 742"
-              value={addressForm.calle}
-              onChange={(e) => setAddressForm({...addressForm, calle: e.target.value})}
-              style={inputStyle}
-              required
-            />
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Ciudad:</label>
-              <input
-                type="text"
-                placeholder="Guatemala"
-                value={addressForm.ciudad}
-                onChange={(e) => setAddressForm({...addressForm, ciudad: e.target.value})}
-                style={inputStyle}
-                required
-              />
-            </div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Estado:</label>
-              <input
-                type="text"
-                placeholder="Guatemala"
-                value={addressForm.estado}
-                onChange={(e) => setAddressForm({...addressForm, estado: e.target.value})}
-                style={inputStyle}
-                required
-              />
-            </div>
-          </div>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Código Postal:</label>
-              <input
-                type="text"
-                placeholder="01001"
-                value={addressForm.codigo_postal}
-                onChange={(e) => setAddressForm({...addressForm, codigo_postal: e.target.value})}
-                style={inputStyle}
-                required
-              />
-            </div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>País:</label>
-              <input
-                type="text"
-                placeholder="Guatemala"
-                value={addressForm.pais}
-                onChange={(e) => setAddressForm({...addressForm, pais: e.target.value})}
-                style={inputStyle}
-                required
-              />
-            </div>
-          </div>
-
-          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.5rem" }}>
-            <input
-              type="checkbox"
-              checked={addressForm.es_principal}
-              onChange={(e) => setAddressForm({...addressForm, es_principal: e.target.checked})}
-            />
-            Establecer como dirección principal
-          </label>
-
-          <div style={{ display: "flex", gap: "1rem", justifyContent: "flex-end" }}>
-            <button
-              type="button"
-              onClick={closeAddressModal}
-              style={secondaryButtonStyle}
-              disabled={loading}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
-              onClick={handleAddressSubmit}
-              disabled={loading || !addressForm.calle || !addressForm.ciudad || !addressForm.estado || !addressForm.codigo_postal || !addressForm.pais}
-              style={{
-                ...primaryButtonStyle,
-                opacity: (loading || !addressForm.calle || !addressForm.ciudad || !addressForm.estado || !addressForm.codigo_postal || !addressForm.pais) ? 0.6 : 1
-              }}
-            >
-              {loading ? "Guardando..." : editingAddress ? "Actualizar Dirección" : "Guardar Dirección"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-};
-
 const CheckoutPage = () => {
-  const { user, isClienteLoggedIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isClienteLoggedIn } = useAuth();
   
-  // Cart data passed from ShoppingCart - memoized to avoid re-renders
+  // Cart data from navigation state - memoized to prevent unnecessary re-renders
   const cartItems = useMemo(() => location.state?.cartItems || [], [location.state?.cartItems]);
-  const totalAmount = useMemo(() => location.state?.totalAmount || 0, [location.state?.totalAmount]);
-
-  const [step, setStep] = useState(1); // 1: Dirección, 2: Pago, 3: Confirmación
+  
+  // UI States
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
-  // Address form data
+  const [step, setStep] = useState(1);
+
+  // Address states
   const [addresses, setAddresses] = useState([]);
   const [selectedAddressId, setSelectedAddressId] = useState(null);
   const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [addressToDelete, setAddressToDelete] = useState(null);
   const [editingAddress, setEditingAddress] = useState(null);
   const [addressForm, setAddressForm] = useState({
     calle: "",
@@ -210,21 +44,62 @@ const CheckoutPage = () => {
     pais: "",
     es_principal: false
   });
-  
-  // Payment form data
+
+  // Payment states
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [paymentData, setPaymentData] = useState({
-    metodo_pago: "tarjeta_credito",
-    numeroTarjeta: "",
-    nombreTarjeta: "",
+    numero_tarjeta: "",
+    nombre_titular: "",
     cvv: "",
-    fechaExpiracion: ""
+    fecha_expiracion: "",
+    tipo_tarjeta: "",
+    email_paypal: "",
+    banco_origen: "",
+    numero_cuenta: "",
+    titular_cuenta: "",
+    entrega: "contra_entrega"
   });
   
   // Order data
   const [orderNotes, setOrderNotes] = useState("");
-  const [createdOrder, setCreatedOrder] = useState(null);
 
-  // Redirect if not logged in or no cart items
+  // Helper function
+  const getAddressId = (address) => {
+    return address?.id || address?.id_direccion || address?.direccion_id;
+  };
+
+  const loadPaymentMethods = useCallback(async () => {
+    try {
+      const response = await getPaymentMethods();
+      setPaymentMethods(response.data || []);
+      if (response.data && response.data.length > 0) {
+        setSelectedPaymentMethod(response.data[0]);
+      }
+    } catch (error) {
+      console.warn("Error cargando métodos de pago:", error);
+      setPaymentMethods([]);
+    }
+  }, []);
+
+  const loadAddresses = useCallback(async () => {
+    try {
+      const addressResponse = await getAddresses();
+      const addressList = addressResponse?.data?.direcciones || [];
+      setAddresses(Array.isArray(addressList) ? addressList : []);
+      
+      if (Array.isArray(addressList) && addressList.length > 0) {
+        const mainAddress = addressList.find(addr => addr.es_principal);
+        if (mainAddress) {
+          setSelectedAddressId(getAddressId(mainAddress));
+        }
+      }
+    } catch (error) {
+      console.error("Error cargando direcciones:", error);
+      setAddresses([]);
+    }
+  }, []);
+
   useEffect(() => {
     if (!isClienteLoggedIn()) {
       navigate("/catalogo");
@@ -237,44 +112,11 @@ const CheckoutPage = () => {
     }
     
     loadAddresses();
-  }, [isClienteLoggedIn, cartItems, navigate]);
-
-  // Helper function to get address ID from different possible field names
-  const getAddressId = (address) => {
-    return address?.id || address?.id_direccion || address?.direccion_id;
-  };
-
-  const loadAddresses = async () => {
-    try {
-      const addressList = await getAddresses();
-      console.log('🏠 Raw address response:', addressList);
-      console.log('🏠 Address data:', addressList.data);
-      console.log('🏠 First address structure:', addressList.data?.[0] ? JSON.stringify(addressList.data[0], null, 2) : 'No addresses');
-      
-      setAddresses(addressList.data || []);
-      // Only auto-select if there's a main address, don't auto-select first address
-      if (addressList.data?.length > 0) {
-        const mainAddress = addressList.data.find(addr => addr.es_principal);
-        if (mainAddress) {
-          const mainAddressId = getAddressId(mainAddress);
-          setSelectedAddressId(mainAddressId);
-        }
-        // Don't auto-select first address if no main address exists
-      }
-    } catch (error) {
-      console.warn("Error cargando direcciones:", error);
-      setAddresses([]);
-    }
-  };
+    loadPaymentMethods();
+  }, [isClienteLoggedIn, cartItems, navigate, loadAddresses, loadPaymentMethods]);
 
   const openAddressModal = (address = null) => {
-    console.log('🏠 Opening address modal with:', address);
-    console.log('🏠 Address ID:', address?.id);
-    console.log('🏠 Address object full structure:', JSON.stringify(address, null, 2));
-    console.log('🏠 Address object keys:', address ? Object.keys(address) : 'No address');
-    
     if (address) {
-      // Editing existing address
       setEditingAddress(address);
       setAddressForm({
         calle: address.calle || "",
@@ -285,7 +127,6 @@ const CheckoutPage = () => {
         es_principal: address.es_principal || false
       });
     } else {
-      // Creating new address
       setEditingAddress(null);
       setAddressForm({
         calle: "",
@@ -312,58 +153,75 @@ const CheckoutPage = () => {
     });
   };
 
+  const openDeleteConfirm = (address) => {
+    setAddressToDelete(address);
+    setShowDeleteConfirm(true);
+  };
+
+  const closeDeleteConfirm = () => {
+    setShowDeleteConfirm(false);
+    setAddressToDelete(null);
+  };
+
+  const handleDeleteAddress = async () => {
+    if (!addressToDelete) return;
+    
+    setLoading(true);
+    setError("");
+    
+    try {
+      const addressId = getAddressId(addressToDelete);
+      await deleteAddress(addressId);
+      
+      const currentAddresses = Array.isArray(addresses) ? addresses : [];
+      const updatedAddresses = currentAddresses.filter(addr => 
+        getAddressId(addr) !== addressId
+      );
+      setAddresses(updatedAddresses);
+      
+      if (selectedAddressId === addressId) {
+        setSelectedAddressId(null);
+        if (updatedAddresses.length > 0) {
+          const firstAddressId = getAddressId(updatedAddresses[0]);
+          setSelectedAddressId(firstAddressId);
+        }
+      }
+      
+      closeDeleteConfirm();
+      
+    } catch (error) {
+      console.error('Error eliminando dirección:', error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddressSubmit = async () => {
     setError("");
     setLoading(true);
     
     try {
-      console.log('📍 Iniciando operación de dirección...');
-      console.log('📍 Usuario actual:', user);
-      console.log('📍 Is cliente logged in:', isClienteLoggedIn());
-      console.log('📍 Datos de dirección:', addressForm);
-      console.log('📍 editingAddress:', editingAddress);
-      console.log('📍 editingAddress.id:', editingAddress?.id);
-      console.log('📍 editingAddress full object:', JSON.stringify(editingAddress, null, 2));
-      
-      // Check for different possible ID field names
       const addressId = getAddressId(editingAddress);
-      console.log('📍 Detected address ID:', addressId);
-      
-      // Verificar token antes de crear/actualizar la dirección
-      const { getToken } = await import('../../utils/storage');
-      const currentToken = getToken();
-      console.log('🔑 Token actual en checkout:', currentToken ? 'Presente' : 'Ausente');
       
       let result;
       if (editingAddress && addressId) {
-        // Update existing address
-        console.log('📍 Attempting to update address with ID:', addressId);
         result = await updateAddress(addressId, addressForm);
-        console.log('✅ Dirección actualizada exitosamente:', result);
-        
-        // Update the address in the list
-        const updatedAddresses = addresses.map(addr => 
+        const currentAddresses = Array.isArray(addresses) ? addresses : [];
+        const updatedAddresses = currentAddresses.map(addr => 
           getAddressId(addr) === addressId ? result.data : addr
         );
         setAddresses(updatedAddresses);
-      } else if (editingAddress && !addressId) {
-        // Address ID not found, log error and treat as new address
-        console.error('❌ No se encontró ID de dirección válido. Tratando como nueva dirección.');
-        setError('Error: No se puede editar dirección sin ID válido');
-        return;
       } else {
-        // Create new address
         result = await createAddress(addressForm);
-        console.log('✅ Dirección creada exitosamente:', result);
-        
-        // Add new address to the list
-        setAddresses([...addresses, result.data]);
+        const currentAddresses = Array.isArray(addresses) ? addresses : [];
+        setAddresses([...currentAddresses, result.data]);
         setSelectedAddressId(getAddressId(result.data));
       }
       
       closeAddressModal();
     } catch (error) {
-      console.error('❌ Error en handleAddressSubmit:', error);
+      console.error('Error en handleAddressSubmit:', error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -377,10 +235,17 @@ const CheckoutPage = () => {
     }
     
     if (step === 2) {
-      if (!paymentData.numeroTarjeta || !paymentData.nombreTarjeta || 
-          !paymentData.cvv || !paymentData.fechaExpiracion) {
-        setError("Por favor completa todos los datos de la tarjeta");
+      if (!selectedPaymentMethod) {
+        setError("Por favor selecciona un método de pago");
         return;
+      }
+      
+      if (selectedPaymentMethod.requiere_datos_adicionales) {
+        const validation = validatePaymentData(selectedPaymentMethod.nombre, paymentData);
+        if (!validation.isValid) {
+          setError(validation.errors.join(", "));
+          return;
+        }
       }
     }
     
@@ -393,56 +258,58 @@ const CheckoutPage = () => {
     setError("");
     
     try {
-      // 1. Create order
       const orderData = {
-        id_direccion_envio: selectedAddressId,
-        notas_orden: orderNotes || "Pedido desde la tienda online"
+        direccion_id: selectedAddressId,
+        metodo_pago: selectedPaymentMethod?.nombre,
+        productos: cartItems.map(item => ({
+          producto_id: item.id,
+          cantidad: item.cantidad,
+          precio_unitario: item.precio
+        })),
+        notas: orderNotes,
+        datos_pago: paymentData
       };
-      
+
       const order = await createOrder(orderData);
-      setCreatedOrder(order.data);
+      navigate('/orden-confirmada', { state: { order } });
       
-      // 2. Process payment
-      const paymentInfo = {
-        metodo_pago: paymentData.metodo_pago,
-        monto: totalAmount,
-        estado_pago: "completado",
-        transaccion_id: `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      };
-      
-      await processPayment(order.data.id, paymentInfo);
-      
-      setStep(4); // Success step
     } catch (error) {
+      console.error('Error creando orden:', error);
       setError(error.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const pageStyle = {
-    minHeight: "100vh",
-    backgroundColor: "#f9fafb",
-    padding: "2rem 1rem"
+  // Calculate totals
+  const subtotal = cartItems.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+  const shipping = subtotal > 500 ? 0 : 50;
+  const total = subtotal + shipping;
+
+  // Styles
+  const containerStyle = {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "2rem",
+    backgroundColor: "#f8fafc"
   };
 
-  const containerStyle = {
-    maxWidth: "800px",
-    margin: "0 auto",
+  const cardStyle = {
     backgroundColor: "white",
-    borderRadius: "16px",
+    borderRadius: "12px",
     padding: "2rem",
-    boxShadow: "0 4px 6px -1px rgba(0,0,0,0.1)"
+    boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+    marginBottom: "2rem"
   };
 
   const stepIndicatorStyle = {
     display: "flex",
-    justifyContent: "center",
-    marginBottom: "2rem",
-    gap: "1rem"
+    justifyContent: "space-between",
+    marginBottom: "3rem",
+    position: "relative"
   };
 
-  const stepStyle = (stepNum, isActive, isCompleted) => ({
+  const stepStyle = (stepNumber, isActive, isCompleted) => ({
     width: "40px",
     height: "40px",
     borderRadius: "50%",
@@ -452,7 +319,8 @@ const CheckoutPage = () => {
     fontSize: "1rem",
     fontWeight: "bold",
     backgroundColor: isCompleted ? "#10b981" : isActive ? "#2563eb" : "#e5e7eb",
-    color: isCompleted || isActive ? "white" : "#6b7280"
+    color: isCompleted || isActive ? "white" : "#6b7280",
+    zIndex: 1
   });
 
   const formGroupStyle = {
@@ -461,30 +329,29 @@ const CheckoutPage = () => {
 
   const labelStyle = {
     display: "block",
-    marginBottom: "0.5rem",
+    fontSize: "0.875rem",
     fontWeight: "600",
-    color: "#374151"
+    color: "#374151",
+    marginBottom: "0.5rem"
   };
 
   const inputStyle = {
     width: "100%",
     padding: "0.75rem",
-    border: "2px solid #e5e7eb",
+    border: "1px solid #d1d5db",
     borderRadius: "8px",
-    fontSize: "1rem",
-    outline: "none",
-    transition: "border-color 0.2s",
+    fontSize: "0.875rem",
     boxSizing: "border-box"
   };
 
   const buttonStyle = {
     padding: "0.75rem 1.5rem",
-    fontSize: "1rem",
-    fontWeight: "600",
     borderRadius: "8px",
-    cursor: "pointer",
     border: "none",
-    transition: "background-color 0.2s"
+    cursor: "pointer",
+    fontWeight: "600",
+    fontSize: "0.875rem",
+    transition: "all 0.2s ease"
   };
 
   const primaryButtonStyle = {
@@ -495,66 +362,16 @@ const CheckoutPage = () => {
 
   const secondaryButtonStyle = {
     ...buttonStyle,
-    backgroundColor: "#6b7280",
-    color: "white"
+    backgroundColor: "#f3f4f6",
+    color: "#374151"
   };
-
-  const formatPrice = (precio) => {
-    return new Intl.NumberFormat('es-GT', {
-      style: 'currency',
-      currency: 'GTQ'
-    }).format(precio);
-  };
-
-  if (step === 4) {
-    return (
-      <div style={pageStyle}>
-        <div style={containerStyle}>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
-              <FiCheck size={64} color="#10b981" />
-            </div>
-            <h1 style={{ color: "#10b981", marginBottom: "1rem" }}>
-              ¡Orden Completada!
-            </h1>
-            <p style={{ color: "#6b7280", marginBottom: "2rem" }}>
-              Tu orden #{createdOrder?.id} ha sido procesada exitosamente
-            </p>
-            <div style={{ 
-              backgroundColor: "#f0fdf4", 
-              padding: "1rem", 
-              borderRadius: "8px",
-              border: "1px solid #bbf7d0",
-              marginBottom: "2rem"
-            }}>
-              <p><strong>Total pagado:</strong> {formatPrice(totalAmount)}</p>
-              <p><strong>Método de pago:</strong> Tarjeta de crédito</p>
-              <p><strong>Estado:</strong> Confirmado</p>
-            </div>
-            <button 
-              onClick={() => navigate("/catalogo")}
-              style={primaryButtonStyle}
-            >
-              Continuar Comprando
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div style={pageStyle}>
-      <div style={containerStyle}>
-        {/* Header */}
-        <div style={{ marginBottom: "2rem", textAlign: "center" }}>
-          <h1 style={{ fontSize: "2rem", fontWeight: "bold", color: "#111827", marginBottom: "0.5rem" }}>
-            Finalizar Compra
-          </h1>
-          <p style={{ color: "#6b7280" }}>
-            Total: {formatPrice(totalAmount)} • {cartItems.length} artículo{cartItems.length !== 1 ? 's' : ''}
-          </p>
-        </div>
+    <div style={containerStyle}>
+      <div style={cardStyle}>
+        <h1 style={{ fontSize: "2rem", fontWeight: "bold", marginBottom: "2rem" }}>
+          Finalizar Compra
+        </h1>
 
         {/* Step Indicator */}
         <div style={stepIndicatorStyle}>
@@ -563,17 +380,19 @@ const CheckoutPage = () => {
           <div style={stepStyle(3, step === 3, step > 3)}>3</div>
         </div>
 
+        {/* Error Alert */}
         {error && (
           <div style={{
             backgroundColor: "#fef2f2",
-            color: "#dc2626",
-            padding: "1rem",
+            border: "1px solid #fca5a5",
             borderRadius: "8px",
-            marginBottom: "1.5rem",
-            border: "1px solid #fecaca"
+            padding: "1rem",
+            marginBottom: "2rem",
+            display: "flex",
+            alignItems: "center"
           }}>
-            <FiAlertTriangle size={16} style={{ marginRight: "0.5rem" }} />
-            {error}
+            <FiAlertTriangle style={{ color: "#dc2626", marginRight: "0.5rem" }} />
+            <span style={{ color: "#dc2626" }}>{error}</span>
           </div>
         )}
 
@@ -581,22 +400,19 @@ const CheckoutPage = () => {
         {step === 1 && (
           <div>
             <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
-              Dirección de Envío
+              Dirección de envío
             </h2>
 
             {addresses.length > 0 && (
               <div style={formGroupStyle}>
                 <label style={labelStyle}>Seleccionar dirección:</label>
                 {addresses.map(address => {
-                  // Handle different possible ID field names
                   const addressId = getAddressId(address);
                   const isSelected = selectedAddressId === addressId;
                   return (
                   <div 
                     key={addressId} 
-                    onClick={() => {
-                      setSelectedAddressId(addressId);
-                    }}
+                    onClick={() => setSelectedAddressId(addressId)}
                     style={{
                       border: isSelected ? "2px solid #2563eb" : "1px solid #e5e7eb",
                       borderRadius: "8px",
@@ -615,9 +431,7 @@ const CheckoutPage = () => {
                         type="radio"
                         name="addressSelection"
                         checked={isSelected}
-                        onChange={() => {
-                          setSelectedAddressId(addressId);
-                        }}
+                        onChange={() => setSelectedAddressId(addressId)}
                         style={{ 
                           marginTop: "0.25rem",
                           cursor: "pointer"
@@ -642,29 +456,65 @@ const CheckoutPage = () => {
                         )}
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openAddressModal(address);
-                      }}
-                      style={{
-                        background: "none",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "6px",
-                        padding: "0.5rem",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        marginLeft: "1rem"
-                      }}
-                      title="Editar dirección"
-                    >
-                      <FiEdit size={16} />
-                    </button>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openAddressModal(address);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "6px",
+                          padding: "0.5rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          color: "#6b7280"
+                        }}
+                        title="Editar dirección"
+                      >
+                        <FiEdit size={16} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteConfirm(address);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "1px solid #fca5a5",
+                          borderRadius: "6px",
+                          padding: "0.5rem",
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          color: "#dc2626"
+                        }}
+                        title="Eliminar dirección"
+                      >
+                        <FiTrash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                   );
                 })}
+              </div>
+            )}
+
+            {addresses.length === 0 && (
+              <div style={{ 
+                padding: "1rem", 
+                backgroundColor: "#fef3c7", 
+                borderRadius: "8px", 
+                marginBottom: "1rem",
+                border: "1px solid #f59e0b"
+              }}>
+                <p style={{ margin: 0, color: "#92400e" }}>
+                  No tienes direcciones guardadas. Agrega una nueva dirección para continuar.
+                </p>
               </div>
             )}
 
@@ -685,19 +535,14 @@ const CheckoutPage = () => {
               Agregar Nueva Dirección
             </button>
 
-            <div style={{ display: "flex", justifyContent: "space-between", marginTop: "2rem" }}>
-              <button
-                onClick={() => navigate("/catalogo")}
-                style={secondaryButtonStyle}
-              >
-                Volver al Catálogo
-              </button>
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2rem" }}>
               <button
                 onClick={handleNextStep}
                 disabled={!selectedAddressId}
                 style={{
                   ...primaryButtonStyle,
-                  opacity: !selectedAddressId ? 0.6 : 1
+                  opacity: !selectedAddressId ? 0.5 : 1,
+                  cursor: !selectedAddressId ? "not-allowed" : "pointer"
                 }}
               >
                 Continuar al Pago
@@ -713,87 +558,16 @@ const CheckoutPage = () => {
               Información de pago
             </h2>
 
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Método de pago:</label>
-              <select
-                value={paymentData.metodo_pago}
-                onChange={(e) => setPaymentData({...paymentData, metodo_pago: e.target.value})}
-                style={inputStyle}
-              >
-                <option value="tarjeta_credito">Tarjeta de crédito</option>
-                <option value="tarjeta_debito">Tarjeta de débito</option>
-                <option value="paypal">PayPal</option>
-              </select>
-            </div>
-
-            {paymentData.metodo_pago.includes('tarjeta') && (
-              <>
-                <div style={formGroupStyle}>
-                  <label style={labelStyle}>Nombre en la Tarjeta:</label>
-                  <input
-                    type="text"
-                    placeholder="JUAN PÉREZ"
-                    value={paymentData.nombreTarjeta}
-                    onChange={(e) => setPaymentData({...paymentData, nombreTarjeta: e.target.value.toUpperCase()})}
-                    style={inputStyle}
-                  />
-                </div>
-
-                <div style={formGroupStyle}>
-                  <label style={labelStyle}>Número de Tarjeta:</label>
-                  <input
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    value={paymentData.numeroTarjeta}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\s/g, '').replace(/[^0-9]/g, '');
-                      const formatted = value.replace(/(.{4})/g, '$1 ').trim();
-                      if (value.length <= 16) {
-                        setPaymentData({...paymentData, numeroTarjeta: formatted});
-                      }
-                    }}
-                    style={inputStyle}
-                  />
-                </div>
-
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-                  <div style={formGroupStyle}>
-                    <label style={labelStyle}>Fecha de Expiración:</label>
-                    <input
-                      type="text"
-                      placeholder="MM/AA"
-                      value={paymentData.fechaExpiracion}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, '');
-                        let formatted = value;
-                        if (value.length >= 2) {
-                          formatted = value.substring(0, 2) + '/' + value.substring(2, 4);
-                        }
-                        if (formatted.length <= 5) {
-                          setPaymentData({...paymentData, fechaExpiracion: formatted});
-                        }
-                      }}
-                      style={inputStyle}
-                    />
-                  </div>
-                  <div style={formGroupStyle}>
-                    <label style={labelStyle}>CVV:</label>
-                    <input
-                      type="text"
-                      placeholder="123"
-                      value={paymentData.cvv}
-                      onChange={(e) => {
-                        const value = e.target.value.replace(/[^0-9]/g, '');
-                        if (value.length <= 4) {
-                          setPaymentData({...paymentData, cvv: value});
-                        }
-                      }}
-                      style={inputStyle}
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+            <PaymentForm
+              paymentMethods={paymentMethods}
+              selectedPaymentMethod={selectedPaymentMethod}
+              onPaymentMethodChange={setSelectedPaymentMethod}
+              paymentData={paymentData}
+              onPaymentDataChange={setPaymentData}
+              formGroupStyle={formGroupStyle}
+              labelStyle={labelStyle}
+              inputStyle={inputStyle}
+            />
 
             <div style={{ display: "flex", justifyContent: "space-between", marginTop: "2rem" }}>
               <button
@@ -826,59 +600,35 @@ const CheckoutPage = () => {
               padding: "1.5rem",
               marginBottom: "1.5rem"
             }}>
-              <h3 style={{ marginBottom: "1rem" }}>Resumen de la Orden</h3>
-              
-              {cartItems.length > 0 ? (
-                cartItems.map(item => {
-                  // Use 'cantidad' (Spanish) as primary, 'quantity' as fallback
-                  const quantity = Number(item.cantidad || item.quantity) || 1;
-                  const unitPrice = Number(item.precio) || 0;
-                  const totalPrice = quantity * unitPrice;
-                  
-                  return (
-                    <div key={item.id} style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "0.5rem 0",
-                      borderBottom: "1px solid #f3f4f6"
-                    }}>
-                      <div>
-                        <strong>{item.nombre_producto}</strong>
-                        <br/>
-                        <span style={{ color: "#6b7280" }}>
-                          Cantidad: {quantity} | Precio unitario: {formatPrice(unitPrice)}
-                        </span>
-                      </div>
-                      <div style={{ textAlign: "right" }}>
-                        <div>{formatPrice(totalPrice)}</div>
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div style={{ padding: "1rem", textAlign: "center", color: "#6b7280" }}>
-                  <p>No hay artículos en el carrito</p>
-                  <p style={{ fontSize: "0.8rem" }}>
-                    CartItems length: {cartItems.length}
-                  </p>
+              <h3 style={{ marginBottom: "1rem" }}>Resumen del Pedido</h3>
+              {cartItems.map(item => (
+                <div key={item.id} style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  paddingBottom: "0.5rem",
+                  borderBottom: "1px solid #f3f4f6",
+                  marginBottom: "0.5rem"
+                }}>
+                  <span>{item.nombre} x {item.cantidad}</span>
+                  <span>${(item.precio * item.cantidad).toFixed(2)}</span>
                 </div>
-              )}
-              
-              <div style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                paddingTop: "1rem",
-                fontSize: "1.25rem",
-                fontWeight: "bold"
-              }}>
+              ))}
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: "1rem" }}>
+                <span>Subtotal:</span>
+                <span>${subtotal.toFixed(2)}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <span>Envío:</span>
+                <span>{shipping === 0 ? 'Gratis' : `$${shipping.toFixed(2)}`}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", fontWeight: "bold", fontSize: "1.1rem", marginTop: "0.5rem" }}>
                 <span>Total:</span>
-                <span>{formatPrice(totalAmount)}</span>
+                <span>${total.toFixed(2)}</span>
               </div>
             </div>
 
-            {/* Delivery Address */}
+            {/* Shipping Address */}
             <div style={{
               border: "1px solid #e5e7eb",
               borderRadius: "8px",
@@ -890,9 +640,9 @@ const CheckoutPage = () => {
                 const selectedAddress = addresses.find(addr => getAddressId(addr) === selectedAddressId);
                 return selectedAddress ? (
                   <div>
-                    <p><strong>{selectedAddress.calle}</strong></p>
-                    <p>{selectedAddress.ciudad}, {selectedAddress.estado}, {selectedAddress.codigo_postal}</p>
-                    <p>{selectedAddress.pais}</p>
+                    <p style={{ marginBottom: "0.25rem" }}><strong>{selectedAddress.calle}</strong></p>
+                    <p style={{ marginBottom: "0.25rem" }}>{selectedAddress.ciudad}, {selectedAddress.estado}</p>
+                    <p style={{ marginBottom: "0.25rem" }}>{selectedAddress.codigo_postal}, {selectedAddress.pais}</p>
                     {selectedAddress.es_principal && (
                       <span style={{ 
                         backgroundColor: "#2563eb", 
@@ -923,29 +673,45 @@ const CheckoutPage = () => {
               marginBottom: "1.5rem"
             }}>
               <h3 style={{ marginBottom: "1rem" }}>Método de Pago</h3>
-              <p style={{ textTransform: "capitalize", marginBottom: "0.5rem" }}>
-                <strong>{paymentData.metodo_pago.replace('_', ' ')}</strong>
-              </p>
-              {paymentData.numeroTarjeta && (
+              {selectedPaymentMethod ? (
                 <div>
-                  <p>**** **** **** {paymentData.numeroTarjeta.slice(-4)}</p>
-                  <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
-                    {paymentData.nombreTarjeta}
+                  <p style={{ marginBottom: "0.5rem" }}>
+                    <strong>{selectedPaymentMethod.descripcion}</strong>
                   </p>
+                  {selectedPaymentMethod.nombre === 'tarjeta_credito' || selectedPaymentMethod.nombre === 'tarjeta_debito' ? (
+                    <div>
+                      <p>**** **** **** {paymentData.numero_tarjeta.slice(-4)}</p>
+                      <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
+                        {paymentData.nombre_titular}
+                      </p>
+                    </div>
+                  ) : selectedPaymentMethod.nombre === 'paypal' ? (
+                    <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
+                      {paymentData.email_paypal}
+                    </p>
+                  ) : selectedPaymentMethod.nombre === 'transferencia' ? (
+                    <div style={{ color: "#6b7280", fontSize: "0.9rem" }}>
+                      <p>{paymentData.banco_origen}</p>
+                      <p>Cuenta: ***{paymentData.numero_cuenta.slice(-4)}</p>
+                    </div>
+                  ) : selectedPaymentMethod.nombre === 'efectivo' ? (
+                    <p style={{ color: "#6b7280", fontSize: "0.9rem" }}>
+                      Pago contra entrega
+                    </p>
+                  ) : null}
                 </div>
-              )}
-              {!paymentData.numeroTarjeta && (
+              ) : (
                 <p style={{ color: "#ef4444", fontSize: "0.9rem" }}>
-                  No se ha ingresado información de tarjeta
+                  No se ha seleccionado método de pago
                 </p>
               )}
             </div>
 
             {/* Order Notes */}
             <div style={formGroupStyle}>
-              <label style={labelStyle}>Notas del Pedido (Opcional):</label>
+              <label style={labelStyle}>Notas del pedido (opcional):</label>
               <textarea
-                placeholder="Ej: Por favor entregar antes de las 5pm"
+                placeholder="Instrucciones especiales para la entrega..."
                 value={orderNotes}
                 onChange={(e) => setOrderNotes(e.target.value)}
                 style={{
@@ -968,10 +734,11 @@ const CheckoutPage = () => {
                 disabled={loading}
                 style={{
                   ...primaryButtonStyle,
-                  opacity: loading ? 0.6 : 1
+                  opacity: loading ? 0.5 : 1,
+                  cursor: loading ? "not-allowed" : "pointer"
                 }}
               >
-                {loading ? "Procesando..." : `Confirmar Orden - ${formatPrice(totalAmount)}`}
+                {loading ? "Procesando..." : `Finalizar Compra ($${total.toFixed(2)})`}
               </button>
             </div>
           </div>
@@ -979,20 +746,280 @@ const CheckoutPage = () => {
       </div>
       
       {/* Address Modal */}
-      <AddressModal 
-        showAddressModal={showAddressModal}
-        closeAddressModal={closeAddressModal}
-        editingAddress={editingAddress}
-        addressForm={addressForm}
-        setAddressForm={setAddressForm}
-        handleAddressSubmit={handleAddressSubmit}
-        loading={loading}
-        formGroupStyle={formGroupStyle}
-        labelStyle={labelStyle}
-        inputStyle={inputStyle}
-        primaryButtonStyle={primaryButtonStyle}
-        secondaryButtonStyle={secondaryButtonStyle}
-      />
+      {showAddressModal && (
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }} 
+          onClick={(e) => e.target === e.currentTarget && closeAddressModal()}
+        >
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "12px",
+            padding: "2rem",
+            width: "90%",
+            maxWidth: "500px",
+            maxHeight: "90vh",
+            overflowY: "auto",
+            position: "relative"
+          }}>
+            <button onClick={closeAddressModal} style={{
+              position: "absolute",
+              top: "1rem",
+              right: "1rem",
+              background: "none",
+              border: "none",
+              fontSize: "1.5rem",
+              cursor: "pointer",
+              color: "#6b7280"
+            }}>
+              <FiX />
+            </button>
+            
+            <h3 style={{ fontSize: "1.25rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
+              {editingAddress ? "Editar Dirección" : "Agregar Nueva Dirección"}
+            </h3>
+
+            <form onSubmit={(e) => { e.preventDefault(); handleAddressSubmit(); }}>
+              <div style={formGroupStyle}>
+                <label style={labelStyle}>Calle y número:</label>
+                <input
+                  type="text"
+                  placeholder="Av. Insurgentes Sur 123"
+                  value={addressForm.calle}
+                  onChange={(e) => setAddressForm({...addressForm, calle: e.target.value})}
+                  style={inputStyle}
+                  required
+                />
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Ciudad:</label>
+                  <input
+                    type="text"
+                    placeholder="Ciudad de México"
+                    value={addressForm.ciudad}
+                    onChange={(e) => setAddressForm({...addressForm, ciudad: e.target.value})}
+                    style={inputStyle}
+                    required
+                  />
+                </div>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Estado:</label>
+                  <input
+                    type="text"
+                    placeholder="CDMX"
+                    value={addressForm.estado}
+                    onChange={(e) => setAddressForm({...addressForm, estado: e.target.value})}
+                    style={inputStyle}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>Código Postal:</label>
+                  <input
+                    type="text"
+                    placeholder="03100"
+                    value={addressForm.codigo_postal}
+                    onChange={(e) => setAddressForm({...addressForm, codigo_postal: e.target.value})}
+                    style={inputStyle}
+                    required
+                  />
+                </div>
+                <div style={formGroupStyle}>
+                  <label style={labelStyle}>País:</label>
+                  <input
+                    type="text"
+                    placeholder="México"
+                    value={addressForm.pais}
+                    onChange={(e) => setAddressForm({...addressForm, pais: e.target.value})}
+                    style={inputStyle}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={formGroupStyle}>
+                <label style={{
+                  ...labelStyle,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  cursor: "pointer"
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={addressForm.es_principal}
+                    onChange={(e) => setAddressForm({...addressForm, es_principal: e.target.checked})}
+                    style={{ margin: 0 }}
+                  />
+                  Establecer como dirección principal
+                </label>
+              </div>
+
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem", marginTop: "2rem" }}>
+                <button
+                  type="button"
+                  onClick={closeAddressModal}
+                  style={{
+                    ...secondaryButtonStyle,
+                    opacity: loading ? 0.6 : 1
+                  }}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    ...primaryButtonStyle,
+                    opacity: (loading || !addressForm.calle || !addressForm.ciudad || !addressForm.estado || !addressForm.codigo_postal || !addressForm.pais) ? 0.6 : 1
+                  }}
+                >
+                  {loading ? "Guardando..." : editingAddress ? "Actualizar Dirección" : "Guardar Dirección"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && (
+        <div 
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.75)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }} 
+          onClick={(e) => e.target === e.currentTarget && closeDeleteConfirm()}
+        >
+          <div style={{
+            backgroundColor: "white",
+            borderRadius: "12px",
+            padding: "2rem",
+            width: "90%",
+            maxWidth: "400px",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            position: "relative"
+          }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{
+                backgroundColor: "#fee2e2",
+                borderRadius: "50%",
+                width: "3rem",
+                height: "3rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                margin: "0 auto 1rem",
+                color: "#dc2626"
+              }}>
+                <FiTrash2 size={24} />
+              </div>
+              
+              <h3 style={{ 
+                fontSize: "1.25rem", 
+                fontWeight: "bold", 
+                marginBottom: "1rem",
+                color: "#1f2937"
+              }}>
+                Eliminar Dirección
+              </h3>
+              
+              <p style={{ 
+                color: "#6b7280", 
+                marginBottom: "0.5rem",
+                fontSize: "0.875rem"
+              }}>
+                ¿Estás seguro de que deseas eliminar esta dirección?
+              </p>
+              
+              {addressToDelete && (
+                <div style={{
+                  backgroundColor: "#f9fafb",
+                  border: "1px solid #e5e7eb",
+                  borderRadius: "8px",
+                  padding: "1rem",
+                  margin: "1rem 0",
+                  textAlign: "left"
+                }}>
+                  <strong>{addressToDelete.calle}</strong><br/>
+                  {addressToDelete.ciudad}, {addressToDelete.estado}, {addressToDelete.codigo_postal}<br/>
+                  {addressToDelete.pais}
+                  {addressToDelete.es_principal && (
+                    <span style={{
+                      backgroundColor: "#2563eb",
+                      color: "white",
+                      fontSize: "0.75rem",
+                      padding: "0.25rem 0.5rem",
+                      borderRadius: "4px",
+                      marginLeft: "0.5rem"
+                    }}>
+                      Principal
+                    </span>
+                  )}
+                </div>
+              )}
+              
+              <p style={{ 
+                color: "#dc2626", 
+                fontSize: "0.875rem",
+                fontWeight: "500",
+                marginBottom: "1.5rem"
+              }}>
+                Esta acción no se puede deshacer.
+              </p>
+              
+              <div style={{ display: "flex", gap: "1rem", justifyContent: "center" }}>
+                <button
+                  onClick={closeDeleteConfirm}
+                  style={{
+                    ...buttonStyle,
+                    backgroundColor: "#f3f4f6",
+                    color: "#374151"
+                  }}
+                  disabled={loading}
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleDeleteAddress}
+                  style={{
+                    ...buttonStyle,
+                    backgroundColor: "#dc2626",
+                    color: "white",
+                    opacity: loading ? 0.5 : 1,
+                    cursor: loading ? "not-allowed" : "pointer"
+                  }}
+                  disabled={loading}
+                >
+                  {loading ? "Eliminando..." : "Eliminar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
