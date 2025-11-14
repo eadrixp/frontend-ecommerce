@@ -122,3 +122,5 @@ src/
 
 REACT_APP_API_URL=http://localhost:3000/api
 REACT_APP_API_TIMEOUT=10000
+
+npm install lucide-react
