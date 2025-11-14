@@ -2,10 +2,8 @@ import React, { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import TableProveedores from "../proveedores/TableProveedores";
 import FormProveedores from "../proveedores/FormProveedores";
-import {
-  getProveedores,
-  deleteProveedor,
-} from "../../services/proveedoresService";
+import { getProveedores, deleteProveedor } from "../../services/proveedoresService";
+import PageHeader from "../../components/layout/Header"; // ✅ Header importado
 
 const ProveedoresPage = () => {
   const [proveedores, setProveedores] = useState([]);
@@ -51,42 +49,26 @@ const ProveedoresPage = () => {
   return (
     <DashboardLayout>
       <div style={{ padding: "2rem" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-          }}
-        >
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-            Gestión de Proveedores
-          </h2>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setProveedorEdit(null);
-            }}
-            style={{
-              backgroundColor: "#2563eb",
-              color: "white",
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            + Nuevo Proveedor
-          </button>
-        </div>
 
-        <TableProveedores
-          proveedores={proveedores}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+        {/* 🔹 HEADER ESTILO UNIFORME */}
+        <PageHeader
+          title="Gestión de Proveedores"
+          onAdd={() => {
+            setShowForm(!showForm);
+            setProveedorEdit(null);
+          }}
+          showForm={showForm}
+          addButtonLabel="+ Nuevo Proveedor"
         />
 
-        {showForm && (
+        {/* 🔹 TABLA O FORMULARIO */}
+        {!showForm ? (
+          <TableProveedores
+            proveedores={proveedores}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ) : (
           <FormProveedores
             proveedorEdit={proveedorEdit}
             onClose={handleCloseForm}

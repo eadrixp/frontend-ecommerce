@@ -5,6 +5,7 @@ import { getProductos } from "../../services/productService";
 import { ChevronLeft, ChevronRight, Plus, Trash2 } from "lucide-react";
 
 const CotizacionesForm = ({ editingCotizacion, onClose }) => {
+  // --- estado y lógica (idéntica a la tuya) ---
   const [currentStep, setCurrentStep] = useState(1);
   const [cotizacionId, setCotizacionId] = useState(editingCotizacion?.id_cotizacion || null);
 
@@ -29,25 +30,17 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
     descuento_porcentaje: 0,
   });
 
-  // INGRESO MANUAL TEMPORAL
   const [idUsuarioCreador, setIdUsuarioCreador] = useState(
     editingCotizacion?.id_usuario_creador || ""
   );
 
-  // --- Obtener clientes registrados ---
   useEffect(() => {
     const fetchClientes = async () => {
       setLoadingClientes(true);
       try {
         const lista = await getClientes();
-        console.log("Clientes obtenidos:", lista);
-
-        if (Array.isArray(lista)) {
-          setClientes(lista);
-        } else {
-          console.warn("El backend no devolvió un array. Resultado:", lista);
-          setClientes([]);
-        }
+        if (Array.isArray(lista)) setClientes(lista);
+        else setClientes([]);
       } catch (err) {
         console.error("Error al obtener clientes:", err);
       } finally {
@@ -57,23 +50,13 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
     fetchClientes();
   }, []);
 
-  // --- Obtener productos registrados ---
   useEffect(() => {
     const fetchProductos = async () => {
       setLoadingProductos(true);
       try {
         const lista = await getProductos();
-        console.log("Productos obtenidos:", lista);
-        if (lista.length > 0) {
-          console.log("Primer producto estructura:", lista[0]);
-        }
-
-        if (Array.isArray(lista)) {
-          setProductos(lista);
-        } else {
-          console.warn("El backend no devolvió un array. Resultado:", lista);
-          setProductos([]);
-        }
+        if (Array.isArray(lista)) setProductos(lista);
+        else setProductos([]);
       } catch (err) {
         console.error("Error al obtener productos:", err);
       } finally {
@@ -83,11 +66,9 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
     fetchProductos();
   }, []);
 
-  // --- Cargar datos al editar ---
   useEffect(() => {
     if (editingCotizacion) {
       setCotizacionId(editingCotizacion.id_cotizacion || editingCotizacion.id);
-
       setFormData((f) => ({
         ...f,
         client: {
@@ -103,9 +84,6 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
     }
   }, [editingCotizacion]);
 
-  // ===============================
-  // HELPERS
-  // ===============================
   const calculateSubtotal = () =>
     formData.orders.reduce((sum, it) => {
       const line = (it.cantidad * it.precio_unitario) * (1 - (it.descuento_porcentaje || 0) / 100);
@@ -114,9 +92,6 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
 
   const calculateTotal = () => calculateSubtotal();
 
-  // ===============================
-  // NAVEGACIÓN
-  // ===============================
   const handleNext = async () => {
     if (currentStep === 1) {
       if (!formData.client.id) {
@@ -153,23 +128,18 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
 
   const handlePrev = () => setCurrentStep((s) => Math.max(1, s - 1));
 
-  // ===============================
-  // ITEMS LOCALES
-  // ===============================
   const handleAddOrderLocal = async () => {
     if (!currentOrder.descripcion || currentOrder.cantidad < 1 || !currentOrder.precio_unitario) {
       alert("Por favor selecciona un producto, ingresa cantidad y asegúrate que tenga precio");
       return;
     }
 
-    // Agregar a la lista local
     const nuevoOrder = { ...currentOrder, id: Date.now() };
     setFormData((f) => ({
       ...f,
       orders: [...f.orders, nuevoOrder],
     }));
 
-    // Guardar en el backend automáticamente si existe cotizacionId
     if (cotizacionId) {
       try {
         const items = [{
@@ -178,22 +148,13 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
           precio_unitario: currentOrder.precio_unitario,
           descuento_porcentaje: currentOrder.descuento_porcentaje || 0,
         }];
-        
-        console.log("Items a enviar al backend:", items);
-        console.log("CotizacionId:", cotizacionId);
-        
         await agregarMultiplesItems(cotizacionId, items);
-        console.log("Item guardado en el backend");
       } catch (err) {
-        console.error("Error al guardar item:", err);
-        console.error("Respuesta del servidor:", err.response?.data);
+        console.error("Error al guardar item:", err, err.response?.data);
         alert("No se pudo guardar el item en el backend, pero se agregó localmente");
       }
-    } else {
-      console.log("No hay cotizacionId, el item solo se guardó localmente");
     }
 
-    // Limpiar el formulario
     setCurrentOrder({
       id_producto: null,
       descripcion: "",
@@ -225,9 +186,6 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
     }
   };
 
-  // ===============================
-  // FINALIZAR
-  // ===============================
   const handleSubmitFinalize = async () => {
     if (!cotizacionId) {
       alert("Cotización no creada");
@@ -253,35 +211,72 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
     }
   };
 
+  // --- ESTILOS INLINE (autocontenidos) ---
+  const styles = {
+    container: {
+      background: "#fff",
+      borderRadius: 12,
+      boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+      padding: 20,
+      border: "1px solid #e6e9ee",
+      maxWidth: 920,
+      margin: "0 auto",
+      fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+    },
+    header: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18, borderBottom: "1px solid #f1f3f6", paddingBottom: 12 },
+    title: { fontSize: 20, fontWeight: 700, color: "#134e8a" },
+    closeBtn: { color: "#c0392b", fontWeight: 600, background: "transparent", border: "none", cursor: "pointer" },
+    stepRow: { display: "flex", gap: 8, marginBottom: 18 },
+    stepBox: (active, passed) => ({
+      flex: 1,
+      textAlign: "center",
+      padding: "10px 8px",
+      borderRadius: 10,
+      fontWeight: 700,
+      background: active ? "#0ea5a6" : passed ? "#16a34a" : "#f3f4f6",
+      color: active || passed ? "#fff" : "#475569",
+      boxShadow: active ? "0 6px 18px rgba(14,165,166,0.18)" : "none",
+    }),
+    section: { marginBottom: 14, background: "#fbfdff", padding: 14, borderRadius: 10 },
+    input: { width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db", outline: "none", boxSizing: "border-box" },
+    textarea: { width: "100%", padding: 10, borderRadius: 8, border: "1px solid #d1d5db", minHeight: 80, resize: "vertical" },
+    label: { display: "block", marginBottom: 6, color: "#334155", fontWeight: 600, fontSize: 13 },
+    grid4: { display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 10 },
+    addBtn: { marginTop: 10, width: "100%", padding: "10px 12px", background: "#0ea5a6", color: "#fff", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 700 },
+    productCard: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: 12, borderRadius: 10, border: "1px solid #eef2f7", background: "#fff" },
+    price: { fontWeight: 800, color: "#075985" },
+    dangerBtn: { padding: 8, borderRadius: 8, background: "transparent", border: "none", color: "#dc2626", cursor: "pointer" },
+    footer: { display: "flex", justifyContent: "space-between", marginTop: 16 },
+    navBtn: { padding: "10px 14px", borderRadius: 8, border: "none", cursor: "pointer", fontWeight: 700 },
+    primaryBtn: { background: "#0b74ff", color: "#fff" },
+    grayBtn: { background: "#f1f5f9", color: "#334155" },
+    totalBox: { background: "#0f766e", color: "#fff", padding: 16, borderRadius: 10, display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 10 },
+  };
+
+  // --- JSX (estilos inline) ---
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6">
+    <div style={styles.container}>
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold">
-          {editingCotizacion ? "Editar Cotización" : "Nueva Cotización"}
-        </h2>
-        <button onClick={onClose} className="text-gray-600">
-          Cancelar
-        </button>
+      <div style={styles.header}>
+        <div style={styles.title}>{editingCotizacion ? "Editar Cotización" : "Nueva Cotización"}</div>
+        <button onClick={onClose} style={styles.closeBtn}>Cerrar ✕</button>
       </div>
 
-      {/* STEPS */}
-      <div className="flex gap-4 mb-6">
-        <div className={`p-3 rounded-lg ${currentStep >= 1 ? "bg-blue-600 text-white" : "bg-gray-200"}`}>1. Cliente</div>
-        <div className={`p-3 rounded-lg ${currentStep >= 2 ? "bg-blue-600 text-white" : "bg-gray-200"}`}>2. Productos</div>
-        <div className={`p-3 rounded-lg ${currentStep >= 3 ? "bg-blue-600 text-white" : "bg-gray-200"}`}>3. Finalizar</div>
+      {/* Steps */}
+      <div style={styles.stepRow}>
+        <div style={styles.stepBox(currentStep === 1, currentStep > 1)}>1. Cliente</div>
+        <div style={styles.stepBox(currentStep === 2, currentStep > 2)}>2. Productos</div>
+        <div style={styles.stepBox(currentStep === 3, currentStep > 3)}>3. Finalizar</div>
       </div>
 
-      {/* STEP CONTENT */}
+      {/* Content */}
       <div>
         {currentStep === 1 && (
-          <div className="space-y-4">
-
-            {/* SELECT CLIENTE */}
-            <div>
-              <label className="block text-sm font-medium">Cliente *</label>
+          <div style={styles.section}>
+            <div style={{ marginBottom: 12 }}>
+              <label style={styles.label}>Cliente *</label>
               <select
-                className="w-full border rounded p-2"
+                style={styles.input}
                 value={formData.client.id ? String(formData.client.id) : ""}
                 onChange={(e) => {
                   if (e.target.value === "") {
@@ -291,10 +286,8 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
                     });
                     return;
                   }
-
                   const selectedId = parseInt(e.target.value, 10);
                   const clienteSeleccionado = clientes.find((c) => c.id_cliente === selectedId);
-
                   setFormData({
                     ...formData,
                     client: {
@@ -314,53 +307,39 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
               </select>
             </div>
 
-            {/* FECHA */}
-            <div>
-              <label className="block text-sm font-medium">Fecha de expiración</label>
-              <input
-                type="date"
-                className="w-full border rounded p-2"
-                value={formData.fecha_expiracion}
-                onChange={(e) =>
-                  setFormData({ ...formData, fecha_expiracion: e.target.value })
-                }
-              />
+            <div style={{ display: "flex", gap: 10 }}>
+              <div style={{ flex: 1 }}>
+                <label style={styles.label}>Fecha de expiración</label>
+                <input
+                  type="date"
+                  style={styles.input}
+                  value={formData.fecha_expiracion}
+                  onChange={(e) => setFormData({ ...formData, fecha_expiracion: e.target.value })}
+                />
+              </div>
+              <div style={{ width: 220 }}>
+                <label style={styles.label}>ID Usuario Creador *</label>
+                <input
+                  type="number"
+                  style={styles.input}
+                  value={idUsuarioCreador}
+                  onChange={(e) => setIdUsuarioCreador(e.target.value)}
+                  placeholder="Ej: 1"
+                />
+              </div>
             </div>
 
-            {/* NOTAS */}
-            <div>
-              <label className="block text-sm font-medium">Notas</label>
-              <textarea
-                className="w-full border rounded p-2"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-              />
-            </div>
-
-            {/* ID USUARIO TEMPORAL */}
-            <div>
-              <label className="block text-sm font-medium">ID Usuario Creador *</label>
-              <input
-                type="number"
-                className="w-full border rounded p-2"
-                value={idUsuarioCreador}
-                onChange={(e) => setIdUsuarioCreador(e.target.value)}
-                placeholder="Ej: 1"
-              />
+            <div style={{ marginTop: 12 }}>
+              <label style={styles.label}>Notas</label>
+              <textarea style={styles.textarea} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
             </div>
           </div>
         )}
 
-        {/* PASO 2 Y PASO 3 SIN CAMBIOS IMPORTANTES... */}
-        {/* (tu código de paso 2 y paso 3 lo mantengo idéntico, solo corregí referencias a nombre) */}
-
         {currentStep === 2 && (
           <div>
-            <div className="mb-4 bg-gray-50 rounded p-4">
-              <div className="grid md:grid-cols-3 gap-3">
-                {/* SELECT PRODUCTO */}
+            <div style={styles.section}>
+              <div style={styles.grid4}>
                 <select
                   value={currentOrder.id_producto || ""}
                   onChange={(e) => {
@@ -373,30 +352,20 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
                       });
                       return;
                     }
-
                     const productoSeleccionado = productos.find(
                       (p) => String(p.id_producto || p.id) === e.target.value
                     );
-                    
-                    console.log("Producto seleccionado:", productoSeleccionado);
-                    
-                    if (productoSeleccionado) {
-                      const precio = parseFloat(productoSeleccionado?.precio || productoSeleccionado?.price || productoSeleccionado?.precioUnitario || 0);
-                      const nombre = productoSeleccionado?.nombre_producto || productoSeleccionado?.nombre || productoSeleccionado?.name || "";
-                      
-                      console.log("Precio extraído:", precio);
-                      console.log("Nombre extraído:", nombre);
-                      
-                      setCurrentOrder({
-                        ...currentOrder,
-                        id_producto: productoSeleccionado?.id_producto || productoSeleccionado?.id || null,
-                        descripcion: nombre,
-                        precio_unitario: precio,
-                      });
-                    }
+                    const precio = parseFloat(productoSeleccionado?.precio || productoSeleccionado?.price || productoSeleccionado?.precioUnitario || 0);
+                    const nombre = productoSeleccionado?.nombre_producto || productoSeleccionado?.nombre || productoSeleccionado?.name || "";
+                    setCurrentOrder({
+                      ...currentOrder,
+                      id_producto: productoSeleccionado?.id_producto || productoSeleccionado?.id || null,
+                      descripcion: nombre,
+                      precio_unitario: precio,
+                    });
                   }}
                   disabled={loadingProductos}
-                  className="col-span-2 border rounded p-2"
+                  style={styles.input}
                 >
                   <option value="">-- Selecciona un producto --</option>
                   {productos.map((p) => (
@@ -417,7 +386,7 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
                       cantidad: parseInt(e.target.value || "1"),
                     })
                   }
-                  className="border rounded p-2"
+                  style={styles.input}
                 />
 
                 <input
@@ -432,7 +401,7 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
                       precio_unitario: parseFloat(e.target.value || "0"),
                     })
                   }
-                  className="border rounded p-2"
+                  style={styles.input}
                 />
 
                 <input
@@ -446,100 +415,74 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
                       descuento_porcentaje: parseFloat(e.target.value || "0"),
                     })
                   }
-                  className="border rounded p-2"
+                  style={styles.input}
                   placeholder="% descuento"
                 />
-
-                <button
-                  type="button"
-                  onClick={handleAddOrderLocal}
-                  className="col-span-1 bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" /> Agregar
-                </button>
               </div>
+
+              <button type="button" onClick={handleAddOrderLocal} style={styles.addBtn}>
+                <span style={{ marginRight: 8, display: "inline-flex", verticalAlign: "middle" }}><Plus size={16} /></span>
+                Agregar
+              </button>
             </div>
 
-            {formData.orders.length === 0 ? (
-              <div className="text-center p-8 bg-gray-50 rounded">
-                No hay productos agregados
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {formData.orders.map((o) => (
-                  <div
-                    key={o.id}
-                    className="flex items-center justify-between bg-white border rounded p-3"
-                  >
-                    <div>
-                      <div className="font-medium">{o.descripcion}</div>
-                      <div className="text-sm text-gray-600">
-                        Cantidad: {o.cantidad} • Q{o.precio_unitario.toFixed(2)}
+            <div style={{ marginTop: 12 }}>
+              {formData.orders.length === 0 ? (
+                <div style={{ textAlign: "center", padding: 20, borderRadius: 10, background: "#f8fafc", color: "#64748b" }}>
+                  No hay productos agregados
+                </div>
+              ) : (
+                <div style={{ display: "grid", gap: 10 }}>
+                  {formData.orders.map((o) => (
+                    <div key={o.id} style={styles.productCard}>
+                      <div>
+                        <div style={{ fontWeight: 700, color: "#0f172a" }}>{o.descripcion}</div>
+                        <div style={{ color: "#64748b", fontSize: 13 }}>Cantidad: {o.cantidad} • Q{o.precio_unitario.toFixed(2)}</div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-semibold">
-                        Q
-                        {(
-                          o.cantidad *
-                          o.precio_unitario *
-                          (1 - (o.descuento_porcentaje || 0) / 100)
-                        ).toFixed(2)}
-                      </div>
-                      <button
-                        onClick={() => handleRemoveLocal(o.id)}
-                        className="text-red-500 p-2"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
 
-                <div className="flex justify-between items-center bg-blue-50 rounded p-3">
-                  <div>Subtotal</div>
-                  <div className="font-bold">
-                    Q{calculateSubtotal().toFixed(2)}
+                      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div style={styles.price}>
+                          Q{(o.cantidad * o.precio_unitario * (1 - (o.descuento_porcentaje || 0) / 100)).toFixed(2)}
+                        </div>
+                        <button onClick={() => handleRemoveLocal(o.id)} style={styles.dangerBtn}>
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div style={{ padding: 12, borderRadius: 8, background: "#ecfeff", display: "flex", justifyContent: "space-between", alignItems: "center", fontWeight: 800, color: "#064e3b" }}>
+                    <div>Subtotal</div>
+                    <div>Q{calculateSubtotal().toFixed(2)}</div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         )}
 
         {currentStep === 3 && (
-          <div className="space-y-4">
-            {/* Cliente */}
-            <div>
-              <h4 className="font-semibold">Cliente</h4>
-              <div className="bg-gray-50 p-3 rounded">
-                <div>{formData.client.name}</div>
-                <div className="text-sm text-gray-600">
-                  Expira: {formData.fecha_expiracion}
-                </div>
+          <div>
+            <div style={styles.section}>
+              <h4 style={{ margin: 0, marginBottom: 8 }}>Cliente</h4>
+              <div style={{ padding: 10, background: "#fff", borderRadius: 8 }}>
+                <div style={{ fontWeight: 700 }}>{formData.client.name}</div>
+                <div style={{ color: "#64748b", fontSize: 13 }}>Expira: {formData.fecha_expiracion}</div>
               </div>
             </div>
 
-            {/* Items */}
-            <div>
-              <h4 className="font-semibold">Productos / Servicios</h4>
-              <div className="space-y-2">
+            <div style={{ marginTop: 10 }}>
+              <h4 style={{ marginBottom: 8 }}>Productos / Servicios</h4>
+              <div style={{ display: "grid", gap: 10 }}>
                 {formData.orders.map((o) => (
-                  <div key={o.id} className="bg-gray-50 p-3 rounded">
-                    <div className="flex justify-between">
+                  <div key={o.id} style={{ background: "#fff", padding: 12, borderRadius: 8, border: "1px solid #eef2f7" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <div>
-                        <div className="font-medium">{o.descripcion}</div>
-                        <div className="text-sm text-gray-600">
-                          Cantidad: {o.cantidad} × Q{o.precio_unitario.toFixed(2)}
-                        </div>
+                        <div style={{ fontWeight: 700 }}>{o.descripcion}</div>
+                        <div style={{ color: "#64748b", fontSize: 13 }}>{o.cantidad} × Q{o.precio_unitario.toFixed(2)}</div>
                       </div>
-                      <div className="font-bold">
-                        Q
-                        {(
-                          o.cantidad *
-                          o.precio_unitario *
-                          (1 - (o.descuento_porcentaje || 0) / 100)
-                        ).toFixed(2)}
+                      <div style={{ fontWeight: 800, color: "#0f172a" }}>
+                        Q{(o.cantidad * o.precio_unitario * (1 - (o.descuento_porcentaje || 0) / 100)).toFixed(2)}
                       </div>
                     </div>
                   </div>
@@ -547,64 +490,45 @@ const CotizacionesForm = ({ editingCotizacion, onClose }) => {
               </div>
             </div>
 
-            {/* Notas */}
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Notas adicionales
-              </label>
-              <textarea
-                className="w-full border rounded p-2"
-                value={formData.notes}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-              />
+            <div style={{ marginTop: 12 }}>
+              <label style={styles.label}>Notas adicionales</label>
+              <textarea style={styles.textarea} value={formData.notes} onChange={(e) => setFormData({ ...formData, notes: e.target.value })} />
             </div>
 
-            {/* Total */}
-            <div className="bg-blue-600 text-white p-4 rounded flex justify-between items-center">
-              <div className="font-semibold">Total de la Cotización</div>
-              <div className="text-2xl font-bold">
-                Q{calculateTotal().toFixed(2)}
-              </div>
+            <div style={styles.totalBox}>
+              <div style={{ fontWeight: 800, fontSize: 16 }}>Total de la Cotización</div>
+              <div style={{ fontSize: 20 }}>Q{calculateTotal().toFixed(2)}</div>
             </div>
           </div>
         )}
       </div>
 
-      {/* NAVIGATION */}
-      <div className="flex gap-3 mt-6 justify-between">
-        {currentStep > 1 ? (
-          <button
-            onClick={handlePrev}
-            className="px-4 py-2 bg-gray-200 rounded flex items-center gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" /> Anterior
-          </button>
-        ) : (
-          <div />
-        )}
+      {/* Footer Nav */}
+      <div style={styles.footer}>
+        <div>
+          {currentStep > 1 ? (
+            <button onClick={handlePrev} style={{ ...styles.navBtn, ...styles.grayBtn }}>
+              <span style={{ marginRight: 8 }}><ChevronLeft size={16} /></span>Anterior
+            </button>
+          ) : (
+            <div />
+          )}
+        </div>
 
-        {currentStep < 3 ? (
-          <button
-            onClick={handleNext}
-            className="px-4 py-2 bg-blue-600 text-white rounded flex items-center gap-2"
-          >
-            Siguiente <ChevronRight className="w-4 h-4" />
-          </button>
-        ) : (
-          <div className="flex gap-2">
-            <button
-              onClick={handleSubmitFinalize}
-              className="px-4 py-2 bg-green-600 text-white rounded"
-            >
-              Finalizar y Guardar
+        <div>
+          {currentStep < 3 ? (
+            <button onClick={handleNext} style={{ ...styles.navBtn, ...styles.primaryBtn }}>
+              Siguiente <span style={{ marginLeft: 8 }}><ChevronRight size={16} /></span>
             </button>
-            <button onClick={onClose} className="px-4 py-2 bg-gray-200 rounded">
-              Cerrar
-            </button>
-          </div>
-        )}
+          ) : (
+            <>
+              <button onClick={handleSubmitFinalize} style={{ ...styles.navBtn, background: "#059669", color: "#fff", marginRight: 8 }}>
+                Finalizar y Guardar
+              </button>
+              <button onClick={onClose} style={{ ...styles.navBtn, ...styles.grayBtn }}>Cerrar</button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );
