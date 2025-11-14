@@ -6,6 +6,7 @@ import {
 } from "../../services/clientesService";
 import TableClientes from "../clientes/TableClientes";
 import ClienteForm from "../clientes/FormClientes";
+import PageHeader from "../../components/layout/Header"; // ✅ Import del header
 
 const ClientesPage = () => {
   const [clientes, setClientes] = useState([]);
@@ -46,42 +47,26 @@ const ClientesPage = () => {
   return (
     <DashboardLayout>
       <div style={{ padding: "2rem" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "1rem",
-          }}
-        >
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-            Gestión de Clientes
-          </h2>
-          <button
-            onClick={() => {
-              setShowForm(true);
-              setClienteEdit(null);
-            }}
-            style={{
-              backgroundColor: "#2563eb",
-              color: "white",
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            + Nuevo Cliente
-          </button>
-        </div>
 
-        <TableClientes
-          clientes={clientes}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
+        {/* 🔹 HEADER EXACTO IGUAL AL DE PRODUCTOS */}
+        <PageHeader
+          title="Gestión de Clientes"
+          onAdd={() => {
+            setShowForm(!showForm);
+            setClienteEdit(null);
+          }}
+          showForm={showForm}
+          addButtonLabel="+ Nuevo Cliente"
         />
 
-        {showForm && (
+        {/* 🔹 TABLA O FORMULARIO */}
+        {!showForm ? (
+          <TableClientes
+            clientes={clientes}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ) : (
           <ClienteForm
             clienteEdit={clienteEdit}
             onClose={handleCloseForm}

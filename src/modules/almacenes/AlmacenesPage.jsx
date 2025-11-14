@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "../../components/layout/DashboardLayout";
-import { obtenerAlmacenes, crearAlmacen, actualizarAlmacen, eliminarAlmacen } from "../../services/almacenesService";
+import { obtenerAlmacenes, eliminarAlmacen } from "../../services/almacenesService";
 import AlmacenesTable from "./AlmacenesTable";
 import AlmacenForm from "../almacenes/AlmacenesForm";
+import PageHeader from "../../components/layout/Header"; // ✅ Header importado
 
 const AlmacenesPage = () => {
   const [almacenes, setAlmacenes] = useState([]);
@@ -39,11 +40,6 @@ const AlmacenesPage = () => {
     }
   };
 
-  const handleNew = () => {
-    setAlmacenEdit(null);
-    setShowForm(true);
-  };
-
   const handleCloseForm = () => {
     setShowForm(false);
     setAlmacenEdit(null);
@@ -53,36 +49,26 @@ const AlmacenesPage = () => {
   return (
     <DashboardLayout>
       <div style={{ padding: "2rem" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            marginBottom: "1rem",
-            alignItems: "center",
+
+        {/* 🔹 HEADER ESTILO UNIFORME */}
+        <PageHeader
+          title="Gestión de Almacenes"
+          onAdd={() => {
+            setShowForm(!showForm);
+            setAlmacenEdit(null);
           }}
-        >
-          <h2 style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-            Gestión de Almacenes
-          </h2>
+          showForm={showForm}
+          addButtonLabel="+ Nuevo Almacén"
+        />
 
-          <button
-            onClick={handleNew}
-            style={{
-              backgroundColor: "#2563eb",
-              color: "white",
-              padding: "0.5rem 1rem",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            + Nuevo Almacén
-          </button>
-        </div>
-
-        <AlmacenesTable almacenes={almacenes} onEdit={handleEdit} onDelete={handleDelete} />
-
-        {showForm && (
+        {/* 🔹 TABLA O FORMULARIO */}
+        {!showForm ? (
+          <AlmacenesTable
+            almacenes={almacenes}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+          />
+        ) : (
           <AlmacenForm
             almacenEdit={almacenEdit}
             onClose={handleCloseForm}

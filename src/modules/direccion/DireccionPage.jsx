@@ -11,6 +11,7 @@ const DireccionPage = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editando, setEditando] = useState(null);
+  const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
     calle: "",
@@ -27,11 +28,13 @@ const DireccionPage = () => {
 
   const cargarDirecciones = async () => {
     setLoading(true);
+    setError(null);
     try {
       const data = await getDirecciones();
-      setDirecciones(data || []);
+      setDirecciones(data.direcciones || []);
     } catch (err) {
-      console.error("Error al cargar direcciones:", err);
+      console.error(err);
+      setError(err.message || "Error al cargar direcciones");
     } finally {
       setLoading(false);
     }
@@ -39,6 +42,7 @@ const DireccionPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError(null);
     try {
       if (editando) {
         await updateDireccion(editando.id_direccion, form);
@@ -57,72 +61,46 @@ const DireccionPage = () => {
       });
       await cargarDirecciones();
     } catch (err) {
-      console.error("Error al guardar dirección:", err);
+      console.error(err);
+      setError(err.message || "Error al guardar dirección");
     }
   };
 
   const handleDelete = async (id) => {
     if (!window.confirm("¿Seguro que deseas eliminar esta dirección?")) return;
+    setError(null);
     try {
       await deleteDireccion(id);
       await cargarDirecciones();
     } catch (err) {
-      console.error("Error al eliminar:", err);
+      console.error(err);
+      setError(err.message || "Error al eliminar dirección");
     }
   };
 
   if (loading) return <p>Cargando direcciones...</p>;
+  if (error) return <p style={{ color: "red" }}>{error}</p>;
 
   return (
-    <div
-      style={{
-        backgroundColor: "#f8f9fa",
-        borderRadius: "12px",
-        boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
-        padding: "20px",
-      }}
-    >
-      {/* Encabezado */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "15px",
-        }}
-      >
-        <h2 style={{ margin: 0, color: "#333" }}>Direcciones</h2>
+    <div style={{ padding: "2rem", backgroundColor: "#f8f9fa", borderRadius: "12px" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "1rem" }}>
+        <h2>Direcciones</h2>
         <button
           onClick={() => {
             setEditando(null);
             setShowModal(true);
           }}
-          style={{
-            backgroundColor: "#007bff",
-            color: "white",
-            border: "none",
-            borderRadius: "8px",
-            padding: "8px 14px",
-            cursor: "pointer",
-            fontWeight: "bold",
-          }}
+          style={btnPrimary}
         >
           + Nueva Dirección
         </button>
       </div>
 
       {/* Tabla */}
-      <table
-        style={{
-          width: "100%",
-          borderCollapse: "collapse",
-          backgroundColor: "white",
-          borderRadius: "8px",
-          overflow: "hidden",
-        }}
-      >
+      <table style={{ width: "100%", borderCollapse: "collapse", background: "#fff", borderRadius: "8px" }}>
         <thead>
-          <tr style={{ backgroundColor: "#f1f1f1", textAlign: "left" }}>
+          <tr style={{ background: "#f1f1f1", textAlign: "left" }}>
             <th style={thStyle}>ID</th>
             <th style={thStyle}>Calle</th>
             <th style={thStyle}>Ciudad</th>
@@ -157,29 +135,11 @@ const DireccionPage = () => {
                       setForm(d);
                       setShowModal(true);
                     }}
-                    style={{
-                      backgroundColor: "#2563eb",
-                      border: "none",
-                      borderRadius: "5px",
-                      padding: "5px 10px",
-                      cursor: "pointer",
-                      color: "white",
-                      marginRight: "6px",
-                    }}
+                    style={btnEdit}
                   >
                     Editar
                   </button>
-                  <button
-                    onClick={() => handleDelete(d.id_direccion)}
-                    style={{
-                      backgroundColor: "#dc3545",
-                      border: "none",
-                      borderRadius: "5px",
-                      padding: "5px 10px",
-                      cursor: "pointer",
-                      color: "white",
-                    }}
-                  >
+                  <button onClick={() => handleDelete(d.id_direccion)} style={btnDelete}>
                     Eliminar
                   </button>
                 </td>
@@ -193,9 +153,7 @@ const DireccionPage = () => {
       {showModal && (
         <div style={modalOverlay}>
           <div style={modalContent}>
-            <h3 style={{ marginBottom: "10px" }}>
-              {editando ? "Editar Dirección" : "Nueva Dirección"}
-            </h3>
+            <h3>{editando ? "Editar Dirección" : "Nueva Dirección"}</h3>
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <input
                 type="text"
@@ -245,32 +203,11 @@ const DireccionPage = () => {
                 />
                 Dirección principal
               </label>
-              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "10px" }}>
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  style={{
-                    backgroundColor: "#6c757d",
-                    color: "white",
-                    border: "none",
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
+              <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px" }}>
+                <button type="button" onClick={() => setShowModal(false)} style={btnCancel}>
                   Cancelar
                 </button>
-                <button
-                  type="submit"
-                  style={{
-                    backgroundColor: "#28a745",
-                    color: "white",
-                    border: "none",
-                    padding: "6px 12px",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                  }}
-                >
+                <button type="submit" style={btnSave}>
                   {editando ? "Actualizar" : "Guardar"}
                 </button>
               </div>
@@ -283,34 +220,17 @@ const DireccionPage = () => {
 };
 
 // Estilos
-const thStyle = { padding: "10px", borderBottom: "1px solid #ddd", color: "#333", fontWeight: "bold" };
-const tdStyle = { padding: "10px", borderBottom: "1px solid #eee", color: "#555" };
+const thStyle = { padding: "10px", borderBottom: "1px solid #ddd", fontWeight: "bold" };
+const tdStyle = { padding: "10px", borderBottom: "1px solid #eee" };
 
-const inputStyle = {
-  padding: "8px",
-  border: "1px solid #ccc",
-  borderRadius: "6px",
-};
+const inputStyle = { padding: "8px", borderRadius: "6px", border: "1px solid #ccc" };
+const modalOverlay = { position: "fixed", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.4)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 };
+const modalContent = { background: "white", borderRadius: "10px", padding: "20px", width: "400px", boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
 
-const modalOverlay = {
-  position: "fixed",
-  top: 0,
-  left: 0,
-  width: "100%",
-  height: "100%",
-  backgroundColor: "rgba(0,0,0,0.4)",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 1000,
-};
-
-const modalContent = {
-  backgroundColor: "white",
-  borderRadius: "10px",
-  padding: "20px",
-  width: "400px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
-};
+const btnPrimary = { backgroundColor: "#7a61eb", color: "white", border: "none", borderRadius: "8px", padding: "8px 14px", cursor: "pointer", fontWeight: "bold" };
+const btnEdit = { backgroundColor: "#7a61eb", color: "white", border: "none", borderRadius: "6px", padding: "5px 10px", marginRight: "6px", cursor: "pointer" };
+const btnDelete = { backgroundColor: "#dc3545", color: "white", border: "none", borderRadius: "6px", padding: "5px 10px", cursor: "pointer" };
+const btnCancel = { backgroundColor: "#6c757d", color: "white", border: "none", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" };
+const btnSave = { backgroundColor: "#28a745", color: "white", border: "none", borderRadius: "6px", padding: "6px 12px", cursor: "pointer" };
 
 export default DireccionPage;
