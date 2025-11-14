@@ -1,230 +1,339 @@
-import React from 'react';
-import { FiCreditCard } from 'react-icons/fi';
-import { 
-  detectCardType, 
-  formatCardNumber, 
-  formatExpirationDate 
-} from '../../../services/paymentService';
+import React, { useState, useEffect } from 'react';
+import { getPaymentMethods, getClientPaymentMethods, saveClientPaymentMethod, validatePaymentData } from '../../../services/paymentService';
+import './PaymentForm.css';
 
 const PaymentForm = ({ 
-  paymentMethods,
   selectedPaymentMethod, 
-  onPaymentMethodChange,
+  onPaymentMethodChange, 
   paymentData, 
-  onPaymentDataChange,
-  formGroupStyle, 
-  labelStyle, 
-  inputStyle 
+  onPaymentDataChange, 
+  errors, 
+  setErrors 
 }) => {
-  const handleCardNumberChange = (value) => {
-    const formatted = formatCardNumber(value);
-    if (formatted.replace(/\s/g, '').length <= 16) {
-      onPaymentDataChange({
-        ...paymentData, 
-        numero_tarjeta: formatted,
-        tipo_tarjeta: detectCardType(formatted)
-      });
+  const [paymentMethods, setPaymentMethods] = useState([]);
+  const [clientPaymentMethods, setClientPaymentMethods] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [saveMethod, setSaveMethod] = useState(false);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const [methodsResult, clientMethodsResult] = await Promise.all([
+        getPaymentMethods(),
+        getClientPaymentMethods()
+      ]);
+
+      if (methodsResult.success) {
+        setPaymentMethods(methodsResult.data || []);
+      }
+
+      if (clientMethodsResult.success) {
+        setClientPaymentMethods(clientMethodsResult.data || []);
+      }
+    } catch (err) {
+      console.error('Error cargando datos:', err);
+      setError('Error al cargar los métodos de pago: ' + err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleExpirationChange = (value) => {
-    const formatted = formatExpirationDate(value);
-    if (formatted.length <= 5) {
-      onPaymentDataChange({...paymentData, fecha_expiracion: formatted});
+  const handlePaymentMethodSelect = (method) => {
+    onPaymentMethodChange(method);
+    onPaymentDataChange({});
+    setErrors({});
+  };
+
+  const handleSavedMethodSelect = (savedMethod) => {
+    onPaymentMethodChange({ ...savedMethod.metodoPago, isSaved: true, savedMethodData: savedMethod });
+    
+    if (savedMethod.metodoPago.tipo_metodo === 'tarjeta_credito' || 
+        savedMethod.metodoPago.tipo_metodo === 'tarjeta_debito') {
+      onPaymentDataChange({
+        numero_tarjeta: `****-****-****-${savedMethod.numero_tarjeta_ultimos_4}`,
+        nombre_titular: savedMethod.nombre_titular || '',
+        fecha_expiracion: savedMethod.fecha_expiracion || '',
+        cvv: '',
+        tipo_tarjeta: savedMethod.tipo_tarjeta || '',
+        banco: savedMethod.banco || ''
+      });
+    }
+    
+    setErrors({});
+  };
+
+  const handleInputChange = (field, value) => {
+    onPaymentDataChange(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    
+    if (errors[field]) {
+      setErrors(prev => ({
+        ...prev,
+        [field]: ''
+      }));
     }
   };
 
   const renderPaymentFields = () => {
-    if (!selectedPaymentMethod || !selectedPaymentMethod.nombre) {
-      return null;
-    }
+    if (!selectedPaymentMethod) return null;
 
-    switch (selectedPaymentMethod.nombre) {
-      case 'tarjeta_credito':
-      case 'tarjeta_debito':
-        return (
-          <div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Nombre del Titular:</label>
-              <input
-                type="text"
-                placeholder="JUAN PÉREZ"
-                value={paymentData.nombre_titular || ''}
-                onChange={(e) => onPaymentDataChange({...paymentData, nombre_titular: e.target.value.toUpperCase()})}
-                style={inputStyle}
-                required
-              />
-            </div>
+    const isCardPayment = selectedPaymentMethod.tipo_metodo === 'tarjeta_credito' || 
+                         selectedPaymentMethod.tipo_metodo === 'tarjeta_debito';
+    const isTransfer = selectedPaymentMethod.tipo_metodo === 'transferencia_bancaria';
+    const isSaved = selectedPaymentMethod.isSaved;
 
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Número de Tarjeta:</label>
-              <input
-                type="text"
-                placeholder="1234 5678 9012 3456"
-                value={paymentData.numero_tarjeta || ''}
-                onChange={(e) => handleCardNumberChange(e.target.value)}
-                style={inputStyle}
-                required
-              />
-            </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-              <div style={formGroupStyle}>
-                <label style={labelStyle}>Fecha de Expiración:</label>
-                <input
-                  type="text"
-                  placeholder="MM/YY"
-                  value={paymentData.fecha_expiracion || ''}
-                  onChange={(e) => handleExpirationChange(e.target.value)}
-                  style={inputStyle}
-                  required
-                />
-              </div>
-              <div style={formGroupStyle}>
-                <label style={labelStyle}>CVV:</label>
-                <input
-                  type="text"
-                  placeholder="123"
-                  value={paymentData.cvv || ''}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    if (value.length <= 4) {
-                      onPaymentDataChange({...paymentData, cvv: value});
-                    }
-                  }}
-                  style={inputStyle}
-                  required
-                />
-              </div>
-            </div>
-
-            {paymentData.numero_tarjeta && paymentData.tipo_tarjeta && (
-              <div style={{ 
-                display: "flex", 
-                alignItems: "center", 
-                marginTop: "0.5rem", 
-                fontSize: "0.875rem",
-                color: "#059669"
-              }}>
-                <FiCreditCard style={{ marginRight: "0.5rem" }} />
-                Tipo detectado: {paymentData.tipo_tarjeta.toUpperCase()}
-              </div>
+    if (isCardPayment) {
+      return (
+        <div style={{ padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '8px', marginTop: '20px' }}>
+          <h4 style={{ marginBottom: '20px' }}>Información de la tarjeta</h4>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label>Número de tarjeta *</label>
+            <input
+              type="text"
+              value={paymentData.numero_tarjeta || ''}
+              onChange={(e) => handleInputChange('numero_tarjeta', e.target.value)}
+              placeholder="1234 5678 9012 3456"
+              disabled={isSaved}
+              style={{ 
+                width: '100%',
+                padding: '10px',
+                border: `1px solid ${errors.numero_tarjeta ? '#ff4444' : '#ddd'}`,
+                borderRadius: '4px',
+                backgroundColor: isSaved ? '#f5f5f5' : '#fff'
+              }}
+            />
+            {errors.numero_tarjeta && (
+              <span style={{ color: '#ff4444', fontSize: '14px' }}>{errors.numero_tarjeta}</span>
             )}
           </div>
-        );
 
-      case 'paypal':
-        return (
-          <div style={formGroupStyle}>
-            <label style={labelStyle}>Email de PayPal:</label>
+          <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+            <div style={{ flex: 1 }}>
+              <label>Fecha de expiración *</label>
+              <input
+                type="month"
+                value={paymentData.fecha_expiracion || ''}
+                onChange={(e) => handleInputChange('fecha_expiracion', e.target.value)}
+                disabled={isSaved}
+                style={{ 
+                  width: '100%',
+                  padding: '10px',
+                  border: `1px solid ${errors.fecha_expiracion ? '#ff4444' : '#ddd'}`,
+                  borderRadius: '4px',
+                  backgroundColor: isSaved ? '#f5f5f5' : '#fff'
+                }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label>CVV *</label>
+              <input
+                type="text"
+                value={paymentData.cvv || ''}
+                onChange={(e) => handleInputChange('cvv', e.target.value)}
+                placeholder="123"
+                style={{ 
+                  width: '100%',
+                  padding: '10px',
+                  border: `1px solid ${errors.cvv ? '#ff4444' : '#ddd'}`,
+                  borderRadius: '4px'
+                }}
+                maxLength={4}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '15px' }}>
+            <label>Nombre del titular *</label>
             <input
-              type="email"
-              placeholder="usuario@example.com"
-              value={paymentData.email_paypal || ''}
-              onChange={(e) => onPaymentDataChange({...paymentData, email_paypal: e.target.value})}
-              style={inputStyle}
-              required
+              type="text"
+              value={paymentData.nombre_titular || ''}
+              onChange={(e) => handleInputChange('nombre_titular', e.target.value)}
+              placeholder="Como aparece en la tarjeta"
+              disabled={isSaved}
+              style={{ 
+                width: '100%',
+                padding: '10px',
+                border: `1px solid ${errors.nombre_titular ? '#ff4444' : '#ddd'}`,
+                borderRadius: '4px',
+                backgroundColor: isSaved ? '#f5f5f5' : '#fff'
+              }}
             />
           </div>
-        );
 
-      case 'transferencia':
-        return (
-          <div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Banco de Origen:</label>
-              <input
-                type="text"
-                placeholder="Banco de Guatemala"
-                value={paymentData.banco_origen || ''}
-                onChange={(e) => onPaymentDataChange({...paymentData, banco_origen: e.target.value})}
-                style={inputStyle}
-                required
-              />
+          {!isSaved && (
+            <div style={{ marginTop: '20px' }}>
+              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={saveMethod}
+                  onChange={(e) => setSaveMethod(e.target.checked)}
+                  style={{ marginRight: '8px' }}
+                />
+                Guardar este método de pago para futuras compras
+              </label>
             </div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Número de Cuenta:</label>
-              <input
-                type="text"
-                placeholder="1234567890"
-                value={paymentData.numero_cuenta || ''}
-                onChange={(e) => onPaymentDataChange({...paymentData, numero_cuenta: e.target.value})}
-                style={inputStyle}
-                required
-              />
-            </div>
-            <div style={formGroupStyle}>
-              <label style={labelStyle}>Titular de la Cuenta:</label>
-              <input
-                type="text"
-                placeholder="Juan Pérez"
-                value={paymentData.titular_cuenta || ''}
-                onChange={(e) => onPaymentDataChange({...paymentData, titular_cuenta: e.target.value})}
-                style={inputStyle}
-                required
-              />
-            </div>
-          </div>
-        );
-
-      case 'efectivo':
-        return (
-          <div style={formGroupStyle}>
-            <p style={{ 
-              color: "#6b7280", 
-              fontSize: "0.9rem",
-              margin: 0,
-              padding: "1rem",
-              backgroundColor: "#f9fafb",
-              borderRadius: "6px"
-            }}>
-              ✅ Pago contra entrega seleccionado. El monto exacto debe ser pagado al momento de recibir el pedido.
-            </p>
-          </div>
-        );
-
-      default:
-        return (
-          <div style={formGroupStyle}>
-            <p style={{ color: "#ef4444", fontSize: "0.9rem" }}>
-              Método de pago no soportado: {selectedPaymentMethod.nombre}
-            </p>
-          </div>
-        );
+          )}
+        </div>
+      );
     }
+
+    if (isTransfer) {
+      return (
+        <div style={{ padding: '20px', backgroundColor: '#f9f9f9', borderRadius: '8px', marginTop: '20px' }}>
+          <h4>Información de la transferencia</h4>
+          <p style={{ marginBottom: '15px', color: '#666' }}>
+            Realiza tu transferencia y proporciona el número de transacción.
+          </p>
+          
+          <div style={{ marginBottom: '15px' }}>
+            <label>Número de transacción *</label>
+            <input
+              type="text"
+              value={paymentData.numero_transaccion || ''}
+              onChange={(e) => handleInputChange('numero_transaccion', e.target.value)}
+              placeholder="Número de transacción"
+              style={{ 
+                width: '100%',
+                padding: '10px',
+                border: `1px solid ${errors.numero_transaccion ? '#ff4444' : '#ddd'}`,
+                borderRadius: '4px'
+              }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
+  if (loading) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>Cargando métodos de pago...</div>;
+  }
+
+  if (error) {
+    return (
+      <div style={{ padding: '20px', color: '#ff4444', textAlign: 'center' }}>
+        {error}
+        <button onClick={loadData} style={{ marginLeft: '10px', padding: '5px 10px' }}>
+          Intentar de nuevo
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {/* Debug Info */}
-      {console.log('PaymentForm render - paymentMethods:', paymentMethods)}
-      {console.log('PaymentForm render - selectedPaymentMethod:', selectedPaymentMethod)}
-      
-      {/* Payment Method Selection */}
-      <div style={formGroupStyle}>
-        <label style={labelStyle}>Método de pago:</label>
-        <select
-          value={selectedPaymentMethod?.id || ''}
-          onChange={(e) => {
-            const selectedId = e.target.value;
-            const method = paymentMethods.find(pm => pm.id === selectedId);
-            console.log('PaymentForm - Selected method:', method);
-            onPaymentMethodChange(method || null);
-          }}
-          style={inputStyle}
-        >
-          <option value="">Selecciona un método de pago</option>
-          {Array.isArray(paymentMethods) ? paymentMethods.map(method => (
-            <option key={method.id} value={method.id}>
-              {method.descripcion || method.nombre}
-            </option>
-          )) : (
-            <option disabled>Cargando métodos de pago...</option>
-          )}
-        </select>
+    <div className="payment-form" style={{ maxWidth: '600px' }}>
+      {/* Métodos de pago guardados */}
+      {clientPaymentMethods.length > 0 && (
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px' }}>Métodos guardados</h3>
+          <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
+            {clientPaymentMethods.map((savedMethod, index) => {
+              const isSelected = selectedPaymentMethod && selectedPaymentMethod.isSaved && 
+                               selectedPaymentMethod.savedMethodData?.id_metodo_pago_cliente === savedMethod.id_metodo_pago_cliente;
+              
+              return (
+                <div 
+                  key={savedMethod.id_metodo_pago_cliente}
+                  onClick={() => handleSavedMethodSelect(savedMethod)}
+                  style={{
+                    padding: '15px',
+                    cursor: 'pointer',
+                    backgroundColor: isSelected ? '#e3f2fd' : '#fff',
+                    borderBottom: index < clientPaymentMethods.length - 1 ? '1px solid #eee' : 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <input 
+                      type="radio" 
+                      checked={isSelected}
+                      onChange={() => handleSavedMethodSelect(savedMethod)}
+                      style={{ marginRight: '10px' }}
+                    />
+                    <div>
+                      <div style={{ fontWeight: '600' }}>{savedMethod.alias}</div>
+                      <div style={{ fontSize: '14px', color: '#666' }}>
+                        {savedMethod.metodoPago.nombre_metodo} ****{savedMethod.numero_tarjeta_ultimos_4}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '12px' }}>
+                    {savedMethod.verificado ? (
+                      <span style={{ color: '#28a745' }}>✓ Verificado</span>
+                    ) : (
+                      <span style={{ color: '#ffc107' }}>⚠ No verificado</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Métodos de pago disponibles */}
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ marginBottom: '15px' }}>
+          {clientPaymentMethods.length > 0 ? 'Nuevo método de pago' : 'Métodos de pago'}
+        </h3>
+        <div style={{ border: '1px solid #ddd', borderRadius: '8px', overflow: 'hidden' }}>
+          {paymentMethods.map((method, index) => {
+            const isSelected = selectedPaymentMethod && !selectedPaymentMethod.isSaved && 
+                             selectedPaymentMethod.id === method.id;
+            
+            return (
+              <div 
+                key={method.id} 
+                onClick={() => handlePaymentMethodSelect(method)}
+                style={{
+                  padding: '15px',
+                  cursor: 'pointer',
+                  backgroundColor: isSelected ? '#e3f2fd' : '#fff',
+                  borderBottom: index < paymentMethods.length - 1 ? '1px solid #eee' : 'none',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
+                <input 
+                  type="radio" 
+                  checked={isSelected}
+                  onChange={() => handlePaymentMethodSelect(method)}
+                  style={{ marginRight: '10px' }}
+                />
+                <img 
+                  src={method.icono_url} 
+                  alt={method.nombre_metodo}
+                  style={{ width: '24px', height: '24px', marginRight: '10px' }}
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+                <div>
+                  <div style={{ fontWeight: '600' }}>{method.nombre_metodo}</div>
+                  <div style={{ fontSize: '14px', color: '#666' }}>
+                    {method.tipo_metodo.replace('_', ' ')}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Payment Form Fields */}
       {renderPaymentFields()}
     </div>
   );
