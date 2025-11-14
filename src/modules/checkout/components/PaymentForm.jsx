@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getPaymentMethods, getClientPaymentMethods, saveClientPaymentMethod, validatePaymentData } from '../../../services/paymentService';
 import './PaymentForm.css';
-
+//Comentario
 const PaymentForm = ({ 
   selectedPaymentMethod, 
   onPaymentMethodChange, 
