@@ -161,8 +161,42 @@ const DashboardLayout = ({ children }) => {
                 isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
               }
             >
+              
               <span style={{ display: "inline-flex", alignItems: "center" }}>
                 <FiUser style={iconStyle} /> Usuarios
+              </span>
+            </NavLink>
+              <NavLink
+              to="/proveedores"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiUser style={iconStyle} /> Proveedores
+              </span>
+            </NavLink>
+               <NavLink
+              to="/almacenes"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiUser style={iconStyle} /> Almacenes
+              </span>
+            </NavLink>
+            <NavLink
+              to="/cotizaciones"
+              style={({ isActive }) =>
+                isActive ? { ...linkStyle, ...linkActiveStyle } : linkStyle
+              }
+            >
+              
+              <span style={{ display: "inline-flex", alignItems: "center" }}>
+                <FiUser style={iconStyle} /> Cotizaciones
               </span>
             </NavLink>
           </nav>
