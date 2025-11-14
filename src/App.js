@@ -12,7 +12,10 @@ import CategoriasPage from "./modules/categories/CategoirasPage"; // tu página 
 import DireccionPage from "./modules/direccion/DireccionPage";
 import CatalogoPage from "./modules/catalogo/CatalogoPage";
 import CheckoutPage from "./modules/checkout/CheckoutPage";
-import UsuariosList from "./modules/usuarios/UsuariosList";
+import UsuariosList from "./modules/usuarios/UsuarioList";
+import ProveedoresPage from "./modules/proveedores/ProveedoresPage";
+import AlmacenesPage from "./modules/almacenes/AlmacenesPage";
+import CotizacionesPage from "./modules/cotizaciones/CotizacionesPage";
 
 // Componentes
 import PrivateRoute from "./components/PrivateRoute";
@@ -88,6 +91,30 @@ function App() {
             <DashboardLayout>
               <UsuariosList />
             </DashboardLayout>
+          }
+        />
+         <Route
+          path="/proveedores"
+          element={
+           
+              <ProveedoresPage />
+            
+          }
+        />
+            <Route
+          path="/almacenes"
+          element={
+           
+              <AlmacenesPage />
+            
+          }
+        />
+                <Route
+          path="/cotizaciones"
+          element={
+           
+              <CotizacionesPage />
+            
           }
         />
       </Route>
