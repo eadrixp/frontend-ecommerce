@@ -905,18 +905,23 @@ body {
   justify-content: space-between;
   align-items: center;
   padding-top: var(--space-xl);
-  border-top: 1px solid rgba(255, 255, 255, 0.2);
   font-size: var(--font-size-sm);
   color: rgba(255, 255, 255, 0.8);
   gap: var(--space-lg);
 }
 
-.catalogo-footer-developer {
+.catalogo-footer-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
   flex: 1;
-  text-align: center;
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-xs);
   color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
+  line-height: 1.5;
+}
+
+.catalogo-footer-info div {
+  font-weight: 400;
 }
 
 .catalogo-footer-social {
