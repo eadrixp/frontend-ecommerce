@@ -823,7 +823,7 @@ body {
   border-radius: var(--radius-lg);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
-  cursor: not-allowed;
+  cursor: pointer;
   transition: var(--transition-fast);
   display: flex;
   align-items: center;

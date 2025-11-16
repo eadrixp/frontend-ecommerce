@@ -2,7 +2,7 @@ import React from "react";
 import { FiShoppingCart } from 'react-icons/fi';
 import { useNavigate } from "react-router-dom";
 
-const CatalogoCartFooter = ({ total, isClienteLoggedIn, onClose }) => {
+const CatalogoCartFooter = ({ total, isClienteLoggedIn, onClose, cartItems }) => {
   const navigate = useNavigate();
 
   const handleCheckout = () => {
@@ -13,7 +13,8 @@ const CatalogoCartFooter = ({ total, isClienteLoggedIn, onClose }) => {
     if (!estaLogueado) {
       navigate('/');
     } else {
-      navigate('/checkout');
+      // Pasar los items del carrito al componente de checkout
+      navigate('/checkout', { state: { cartItems } });
     }
     onClose();
   };

@@ -126,6 +126,7 @@ const CatalogoCart = ({
               total={total} 
               isClienteLoggedIn={isClienteLoggedIn}
               onClose={onClose}
+              cartItems={cartItems}
             />
           </>
         ) : (
