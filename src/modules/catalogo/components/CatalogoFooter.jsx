@@ -1,6 +1,6 @@
 import React from "react";
-import { CgEnter } from "react-icons/cg";
-import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin } from 'react-icons/fi';
+//import { CgEnter } from "react-icons/cg";
+//import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin } from 'react-icons/fi';
 
 const CatalogoFooter = () => {
   const currentYear = new Date().getFullYear();

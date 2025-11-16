@@ -1,5 +1,5 @@
 import React from "react";
-import { FiEdit, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
+import { FiEdit, FiPlus, FiTrash2 } from 'react-icons/fi';
 import AddressModal from "./AddressModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
@@ -8,7 +8,6 @@ const Step1Address = ({
   selectedAddressId,
   onAddressSelect,
   loading,
-  error,
   showAddressModal,
   onOpenAddressModal,
   onCloseAddressModal,
