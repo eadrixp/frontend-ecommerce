@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProductos } from "../../services/productService";
 import ProductCard from "./components/ProductCard";
-import SearchBar from "./components/SearchBar";
-import CategoryFilter from "./components/CategoryFilter";
-import ShoppingCart from "./components/ShoppingCart";
+import CatalogoHeader from "./components/CatalogoHeader";
+import CatalogoCart from "./components/CatalogoCart";
+import CatalogoFooter from "./components/CatalogoFooter";
 import useAuth from "../../hooks/useAuth";
-import { FiShoppingBag, FiUser, FiShoppingCart, FiSearch } from 'react-icons/fi';
+import "./Catalogo.css";
 
 const CatalogoPage = () => {
   const { user, isClienteLoggedIn, logout } = useAuth();
@@ -25,17 +25,30 @@ const CatalogoPage = () => {
       try {
         const data = await getProductos();
         
-        // Asegurar que los datos tengan la estructura correcta según el API
-        const productosValidados = Array.isArray(data) ? data.map(producto => ({
-          id: producto.id_producto,
-          nombre_producto: producto.nombre_producto || '',
-          descripcion: producto.descripcion || '',
-          precio: Number(producto.precio) || 0,
-          stock: Number(producto.stock) || 0,
-          categoria: producto.categoria?.nombre_categoria || null,
-          imagen_url: producto.imagenes?.find(img => img.es_principal)?.url_imagen || null,
-          activo: producto.activo
-        })) : [];
+        const productosValidados = Array.isArray(data) ? data.map(producto => {
+          // Intentar obtener imagen de diferentes estructuras posibles
+          let imagenUrl = null;
+          if (producto.imagenes && Array.isArray(producto.imagenes)) {
+            const imgPrincipal = producto.imagenes.find(img => img.es_principal);
+            imagenUrl = imgPrincipal?.url_imagen || producto.imagenes[0]?.url_imagen || null;
+          } else if (producto.imagen_url) {
+            imagenUrl = producto.imagen_url;
+          } else if (producto.imagen) {
+            imagenUrl = producto.imagen;
+          }
+          
+          return {
+            id: producto.id_producto,
+            id_producto: producto.id_producto,
+            nombre_producto: producto.nombre_producto || '',
+            descripcion: producto.descripcion || '',
+            precio: Number(producto.precio) || 0,
+            stock: Number(producto.stock) || 0,
+            categoria: producto.categoria?.nombre_categoria || null,
+            imagen_url: imagenUrl,
+            activo: producto.activo
+          };
+        }) : [];
         
         setProductos(productosValidados);
         setFilteredProductos(productosValidados);
@@ -51,11 +64,10 @@ const CatalogoPage = () => {
     fetchProductos();
   }, []);
 
-  // Filtrar productos por búsqueda y categoría
+  // Filtrar productos
   useEffect(() => {
     let filtered = productos;
 
-    // Filtrar por término de búsqueda
     if (searchTerm) {
       filtered = filtered.filter(producto =>
         (producto.nombre_producto || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,7 +75,6 @@ const CatalogoPage = () => {
       );
     }
 
-    // Filtrar por categoría
     if (selectedCategory) {
       filtered = filtered.filter(producto => 
         producto.categoria === selectedCategory
@@ -73,23 +84,23 @@ const CatalogoPage = () => {
     setFilteredProductos(filtered);
   }, [productos, searchTerm, selectedCategory]);
 
-  // Agregar producto al carrito
+  // Agregar al carrito
   const addToCart = (producto) => {
-    const existingItem = cart.find(item => item.id === producto.id);
+    const existingItem = cart.find(item => 
+      (item.id || item.id_producto) === (producto.id || producto.id_producto)
+    );
     
     if (existingItem) {
-      // Verificar que no se exceda el stock disponible
       if (existingItem.cantidad >= producto.stock) {
-        alert(`No puedes agregar más de ${producto.stock} unidades de "${producto.nombre_producto}". Stock disponible: ${producto.stock}`);
+        alert(`No puedes agregar más de ${producto.stock} unidades de "${producto.nombre_producto}"`);
         return;
       }
       setCart(cart.map(item =>
-        item.id === producto.id
+        (item.id || item.id_producto) === (producto.id || producto.id_producto)
           ? { ...item, cantidad: item.cantidad + 1 }
           : item
       ));
     } else {
-      // Verificar que haya stock disponible
       if (producto.stock <= 0) {
         alert(`"${producto.nombre_producto}" está agotado`);
         return;
@@ -98,81 +109,40 @@ const CatalogoPage = () => {
     }
   };
 
-  // Remover producto del carrito
+  // Remover del carrito
   const removeFromCart = (productoId) => {
-    setCart(cart.filter(item => item.id !== productoId));
+    setCart(cart.filter(item => (item.id || item.id_producto) !== productoId));
   };
 
-  // Actualizar cantidad en carrito
+  // Actualizar cantidad
   const updateQuantity = (productoId, newQuantity) => {
     if (newQuantity === 0) {
       removeFromCart(productoId);
     } else {
-      // Encontrar el producto original para verificar stock
-      const producto = productos.find(p => p.id === productoId);
+      const producto = productos.find(p => (p.id || p.id_producto) === productoId);
       
       if (producto && newQuantity > producto.stock) {
-        alert(`No puedes agregar más de ${producto.stock} unidades de "${producto.nombre_producto}". Stock disponible: ${producto.stock}`);
+        alert(`No puedes agregar más de ${producto.stock} unidades`);
         return;
       }
       
       setCart(cart.map(item =>
-        item.id === productoId
+        (item.id || item.id_producto) === productoId
           ? { ...item, cantidad: newQuantity }
           : item
       ));
     }
   };
 
-  // Función para abrir el modal de autenticación
-  const handleShowLogin = () => {
-    navigate('/', { state: { returnPath: '/catalogo' } });
+  const handleUserClick = () => {
+    if (!user) {
+      navigate('/');
+    }
   };
 
-  const headerStyle = {
-    backgroundColor: "#ffffff",
-    borderBottom: "1px solid #e2e8f0",
-    padding: "1.5rem 2rem",
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
-    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
-    backdropFilter: "blur(8px)"
-  };
-
-  const containerStyle = {
-    maxWidth: "1400px",
-    margin: "0 auto",
-    padding: "2rem",
-    backgroundColor: "#f9fafb",
-    minHeight: "100vh"
-  };
-
-  const gridStyle = {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-    gap: "1.25rem",
-    marginTop: "2rem",
-    padding: "0 0.5rem"
-  };
-
-  const cartButtonStyle = {
-    position: "fixed",
-    bottom: "2rem",
-    right: "2rem",
-    backgroundColor: "#2563eb",
-    color: "white",
-    border: "none",
-    borderRadius: "50px",
-    padding: "1rem 1.5rem",
-    fontSize: "1rem",
-    fontWeight: "bold",
-    cursor: "pointer",
-    boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-    zIndex: 1000,
-    display: "flex",
-    alignItems: "center",
-    gap: "0.5rem"
+  const handleLogout = () => {
+    logout();
+    setCart([]);
   };
 
   if (loading) {
@@ -182,197 +152,90 @@ const CatalogoPage = () => {
         justifyContent: "center", 
         alignItems: "center", 
         height: "100vh",
-        backgroundColor: "#f9fafb" 
+        background: "linear-gradient(135deg, #1a2e4a 0%, #2d4563 100%)" 
       }}>
-        <div style={{ textAlign: "center" }}>
+        <div style={{ textAlign: "center", color: "white" }}>
           <div style={{ 
             width: "50px", 
             height: "50px", 
-            border: "3px solid #e5e7eb", 
-            borderTop: "3px solid #2563eb",
+            border: "3px solid rgba(255,255,255,0.3)", 
+            borderTop: "3px solid white",
             borderRadius: "50%",
             animation: "spin 1s linear infinite",
             margin: "0 auto 1rem"
           }}></div>
-          <p style={{ fontSize: "1.2rem", color: "#6b7280" }}>Cargando productos...</p>
+          <p style={{ fontSize: "1.2rem" }}>Cargando productos...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <>
+    <div className="catalogo-container">
       {/* Header */}
-      <header style={headerStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <h1 style={{ fontSize: "2rem", fontWeight: "bold", color: "#111827", margin: 0, display: "flex", alignItems: "center", gap: "0.5rem" }}>
-              <FiShoppingBag size={32} color="#2563eb" />
-              Nexxus Tecnology
-            </h1>
-            <p style={{ color: "#6b7280", margin: "0.5rem 0 0 0" }}>
-              Descubre nuestros productos
-            </p>
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-            {isClienteLoggedIn() ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                <div style={{ textAlign: "right" }}>
-                  <p style={{ margin: 0, color: "#111827", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                    <FiUser size={16} />
-                    {user?.nombre_usuario || user?.correo_electronico}
-                  </p>
-                  <p style={{ margin: 0, color: "#6b7280", fontSize: "0.875rem" }}>
-                    Cliente
-                  </p>
-                </div>
-                <button 
-                  onClick={logout}
-                  style={{
-                    padding: "0.5rem 1rem",
-                    backgroundColor: "#ef4444",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    fontSize: "0.875rem"
-                  }}
-                >
-                  Cerrar Sesión
-                </button>
-              </div>
-            ) : (
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                {/*<span style={{ color: "#6b7280" }}>
-                  {filteredProductos.length} producto{filteredProductos.length !== 1 ? 's' : ''}
-                </span>*/}
-                <button
-                  onClick={handleShowLogin}
-                  style={{
-                    padding: "0.75rem 1.5rem",
-                    backgroundColor: "#2563eb",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    fontSize: "0.875rem",
-                    fontWeight: "600",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.5rem",
-                    boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)"
-                  }}
-                >
-                  Iniciar Sesión
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </header>
+      <CatalogoHeader 
+        user={user}
+        isClienteLoggedIn={isClienteLoggedIn}
+        cartCount={cart.reduce((acc, item) => acc + (item.cantidad || 1), 0)}
+        onCartClick={() => setShowCart(true)}
+        onUserClick={handleUserClick}
+        onLogout={handleLogout}
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        productos={productos}
+        selectedCategory={selectedCategory}
+        onCategoryChange={setSelectedCategory}
+      />
 
-      {/* Contenido principal */}
-      <div style={containerStyle}>
-        {/* Filtros */}
-        <div 
-          className="filters-grid"
-          style={{ 
-            display: "grid", 
-            gridTemplateColumns: "1fr auto", 
-            gap: "1rem", 
-            marginBottom: "1.5rem",
-            alignItems: "center"
-          }}
-        >
-          <SearchBar 
-            searchTerm={searchTerm} 
-            onSearchChange={setSearchTerm} 
-          />
-          <div style={{ minWidth: "200px" }}>
-            <CategoryFilter
-              productos={productos}
-              selectedCategory={selectedCategory}
-              onCategoryChange={setSelectedCategory}
-            />
-          </div>
-        </div>
-
-        {/* Grid de productos */}
+      {/* Body */}
+      <main className="catalogo-body">
+        {/* Productos */}
         {filteredProductos.length === 0 ? (
-          <div style={{ 
-            textAlign: "center", 
-            padding: "4rem", 
-            backgroundColor: "white",
-            borderRadius: "12px",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
-          }}>
-            <div style={{ fontSize: "4rem", marginBottom: "1rem", display: "flex", justifyContent: "center" }}>
-              <FiSearch size={64} color="#d1d5db" />
-            </div>
-            <h3 style={{ color: "#6b7280", fontSize: "1.5rem", marginBottom: "0.5rem" }}>
-              No se encontraron productos
-            </h3>
-            <p style={{ color: "#9ca3af" }}>
-              Intenta con otros términos de búsqueda o filtros
-            </p>
+          <div className="catalogo-empty">
+            <p>No se encontraron productos</p>
+            <button
+              onClick={() => {
+                setSearchTerm("");
+                setSelectedCategory("");
+              }}
+              style={{
+                padding: "10px 20px",
+                backgroundColor: "#1a2e4a",
+                color: "white",
+                border: "none",
+                borderRadius: "6px",
+                cursor: "pointer"
+              }}
+            >
+              Limpiar Filtros
+            </button>
           </div>
         ) : (
-          <div className="catalog-grid" style={gridStyle}>
+          <div className="catalogo-products-wrapper">
             {filteredProductos.map(producto => (
               <ProductCard
-                key={producto.id}
+                key={producto.id || producto.id_producto}
                 producto={producto}
                 onAddToCart={addToCart}
               />
             ))}
           </div>
         )}
-      </div>
+      </main>
 
-      {/* Botón flotante del carrito */}
-      <button
-        style={cartButtonStyle}
-        onClick={() => setShowCart(true)}
-      >
-        <FiShoppingCart size={20} />
-        <span>Carrito ({cart.reduce((acc, item) => acc + item.cantidad, 0)})</span>
-      </button>
+      {/* Carrito */}
+      <CatalogoCart 
+        isOpen={showCart}
+        cartItems={cart}
+        onClose={() => setShowCart(false)}
+        onUpdateQuantity={updateQuantity}
+        onRemoveItem={removeFromCart}
+        isClienteLoggedIn={isClienteLoggedIn}
+      />
 
-      {/* Modal del carrito */}
-      {showCart && (
-        <ShoppingCart
-          cart={cart}
-          onClose={() => setShowCart(false)}
-          onRemove={removeFromCart}
-          onUpdateQuantity={updateQuantity}
-        />
-      )}
-
-      <style>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-        
-        /* Mejoras de responsividad */
-        @media (max-width: 768px) {
-          .filters-grid {
-            grid-template-columns: 1fr !important;
-            gap: 0.75rem !important;
-          }
-          .catalog-grid {
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
-            gap: 1rem !important;
-          }
-        }
-        
-        @media (max-width: 480px) {
-          .catalog-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
-    </>
+      {/* Footer */}
+      <CatalogoFooter />
+    </div>
   );
 };
 

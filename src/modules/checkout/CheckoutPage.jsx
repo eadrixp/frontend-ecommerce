@@ -5,6 +5,7 @@ import { createAddress, getAddresses, updateAddress, deleteAddress } from "../..
 import { createOrder } from "../../services/orderService";
 import { validatePaymentData } from "../../services/paymentService";
 import PaymentForm from "./components/PaymentForm";
+import './Checkout.css';
 import { 
   FiAlertTriangle,
   FiX,
