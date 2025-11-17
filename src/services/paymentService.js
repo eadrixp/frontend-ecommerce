@@ -7,7 +7,6 @@ import apiClient from '../api/apiClient';
 export const getPaymentMethods = async () => {
   try {
     const response = await apiClient.get('/metodos-pago/online');
-    console.log(' Métodos de pago obtenidos:', response.data);
     
     // Filtrar solo los métodos activos y disponibles online
     const activePaymentMethods = response.data.data.filter(method => 
@@ -41,9 +40,7 @@ export const getPaymentMethods = async () => {
  */
 export const getPaymentMethodById = async (paymentMethodId) => {
   try {
-    const response = await apiClient.get(`/metodos-pago/${paymentMethodId}`);
-    console.log(' Método de pago obtenido:', response.data);
-    
+    const response = await apiClient.get(`/metodos-pago/${paymentMethodId}`);    
     return {
       success: true,
       data: response.data.data
@@ -177,7 +174,6 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
 export const getClientPaymentMethods = async () => {
   try {
     const response = await apiClient.get('/metodos-pago-cliente');
-    console.log(' Métodos de pago del cliente obtenidos:', response.data);
     
     // La respuesta puede ser un objeto o un array
     let clientMethods = response.data.data;
@@ -212,8 +208,6 @@ export const getClientPaymentMethods = async () => {
 export const getClientPaymentMethodById = async (clientPaymentMethodId) => {
   try {
     const response = await apiClient.get(`/metodos-pago-cliente/${clientPaymentMethodId}`);
-    console.log(' Método de pago del cliente obtenido:', response.data);
-    
     return {
       success: true,
       data: response.data.data
@@ -238,8 +232,6 @@ export const getClientPaymentMethodById = async (clientPaymentMethodId) => {
 export const getDefaultClientPaymentMethod = async () => {
   try {
     const response = await apiClient.get('/metodos-pago-cliente/predeterminado');
-    console.log(' Método de pago predeterminado obtenido:', response.data);
-    
     return {
       success: true,
       data: response.data.data
@@ -265,8 +257,6 @@ export const getDefaultClientPaymentMethod = async () => {
 export const saveClientPaymentMethod = async (paymentMethodData) => {
   try {
     const response = await apiClient.post('/metodos-pago-cliente', paymentMethodData);
-    console.log(' Método de pago guardado exitosamente:', response.data);
-    
     return {
       success: true,
       data: response.data.data
@@ -293,8 +283,6 @@ export const saveClientPaymentMethod = async (paymentMethodData) => {
 export const updateClientPaymentMethod = async (clientPaymentMethodId, updateData) => {
   try {
     const response = await apiClient.put(`/metodos-pago-cliente/${clientPaymentMethodId}`, updateData);
-    console.log(' Método de pago actualizado exitosamente:', response.data);
-    
     return {
       success: true,
       data: response.data.data
@@ -320,8 +308,6 @@ export const updateClientPaymentMethod = async (clientPaymentMethodId, updateDat
 export const setDefaultClientPaymentMethod = async (clientPaymentMethodId) => {
   try {
     const response = await apiClient.patch(`/metodos-pago-cliente/${clientPaymentMethodId}/predeterminado`);
-    console.log(' Método de pago marcado como predeterminado:', response.data);
-    
     return {
       success: true,
       data: response.data.data
@@ -347,8 +333,6 @@ export const setDefaultClientPaymentMethod = async (clientPaymentMethodId) => {
 export const deleteClientPaymentMethod = async (clientPaymentMethodId) => {
   try {
     const response = await apiClient.delete(`/metodos-pago-cliente/${clientPaymentMethodId}`);
-    console.log(' Método de pago eliminado exitosamente:', response.data);
-    
     return {
       success: true,
       data: response.data.data
