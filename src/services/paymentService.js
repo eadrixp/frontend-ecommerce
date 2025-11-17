@@ -264,6 +264,7 @@ export const getDefaultClientPaymentMethod = async () => {
  */
 export const saveClientPaymentMethod = async (paymentMethodData) => {
   try {
+    console.log('saveClientPaymentMethod - Datos enviados:', JSON.stringify(paymentMethodData, null, 2));
     const response = await apiClient.post('/metodos-pago-cliente', paymentMethodData);
     return {
       success: true,
@@ -271,6 +272,7 @@ export const saveClientPaymentMethod = async (paymentMethodData) => {
     };
   } catch (error) {
     console.error(' Error guardando método de pago:', error);
+    console.error('Error response data:', error.response?.data);
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;

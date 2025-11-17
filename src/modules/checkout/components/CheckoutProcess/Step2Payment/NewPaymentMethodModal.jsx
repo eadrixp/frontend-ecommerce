@@ -91,6 +91,9 @@ const NewPaymentMethodModal = ({
         ...paymentData, // Incluir todos los datos del formulario
       };
 
+      console.log('Payload enviado al backend:', JSON.stringify(payload, null, 2));
+      console.log('Tipo de método:', selectedMethod.tipo_metodo);
+
       // Guardar el método de pago
       const response = await saveClientPaymentMethod(payload);
 
