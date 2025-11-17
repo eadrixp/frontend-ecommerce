@@ -269,8 +269,4 @@ const VERIFICATION_COMPLETE = {
  * Todos los archivos están presentes y validados ✅
  */
 
-console.log('✅ TODOS LOS ARCHIVOS EXISTEN Y HAN SIDO VERIFICADOS');
-console.log('📊 Total: 11 archivos | 7 componentes nuevos | 2 refactorizados');
-console.log('🎯 Estado: LISTO PARA USAR');
-
 module.exports = VERIFICATION_COMPLETE;

@@ -304,8 +304,3 @@ const NOTAS = {
   css: "Sistema de variables CSS para fácil mantenimiento y personalización"
 };
 
-console.log("✅ REFACTOR DE CATALOGO COMPLETADO");
-console.log("📊 Total de bytes:", ESTADISTICAS.total_bytes);
-console.log("🎨 Colores AnySell implementados:", Object.keys(COLORES).length);
-console.log("📁 Archivos verificados:", Object.keys(FILE_VERIFICATION).length);
-console.log("🚀 Listo para testing y deployment");

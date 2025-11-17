@@ -240,10 +240,4 @@ const REGENERATION_REPORT = {
   `
 };
 
-console.log('✅ REGENERACIÓN EXHAUSTIVA COMPLETADA');
-console.log(`📅 ${REGENERATION_REPORT.timestamp}`);
-console.log(`📊 Componentes creados: 8 nuevos + 1 actualizado`);
-console.log(`🎨 Archivos CSS: 1 completo`);
-console.log(`✔️ Validación: EXITOSA - Sin errores`);
-
 module.exports = REGENERATION_REPORT;
