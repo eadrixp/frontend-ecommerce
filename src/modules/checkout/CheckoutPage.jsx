@@ -4,6 +4,7 @@ import useAuth from "../../hooks/useAuth";
 import { createAddress, getAddresses, updateAddress, deleteAddress } from "../../services/addressService";
 import { createOrder } from "../../services/orderService";
 import { validatePaymentData } from "../../services/paymentService";
+import { getClienteProfile } from "../../services/clienteAuthService";
 import { Step1Address, Step2Payment, Step3Review } from "./components/CheckoutProcess";
 import './Checkout.css';
 import './components/CheckoutProcess/CheckoutProcess.css';
@@ -12,7 +13,7 @@ import { FiAlertTriangle } from 'react-icons/fi';
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isClienteLoggedIn } = useAuth();
+  const { isClienteLoggedIn} = useAuth();
   
   // Cart data from navigation state - memoized to prevent unnecessary re-renders
   const cartItems = useMemo(() => location.state?.cartItems || [], [location.state?.cartItems]);
@@ -21,6 +22,7 @@ const CheckoutPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [step, setStep] = useState(1);
+  const [clientProfile, setClientProfile] = useState(null);
 
   // Address states
   const [addresses, setAddresses] = useState([]);
@@ -86,6 +88,16 @@ const CheckoutPage = () => {
     }
   }, []);
 
+  const loadClientProfile = useCallback(async () => {
+    try {
+      const profileData = await getClienteProfile();
+      setClientProfile(profileData);
+    } catch (error) {
+      console.error("Error cargando perfil del cliente:", error);
+      // No es crítico si falla, continuamos con los datos disponibles
+    }
+  }, []);
+
   useEffect(() => {
     if (!isClienteLoggedIn()) {
       navigate("/catalogo");
@@ -98,7 +110,8 @@ const CheckoutPage = () => {
     }
     
     loadAddresses();
-  }, [isClienteLoggedIn, cartItems, navigate, loadAddresses]);
+    loadClientProfile();
+  }, [isClienteLoggedIn, cartItems, navigate, loadAddresses, loadClientProfile]);
 
   const openAddressModal = (address = null) => {
     if (address) {
@@ -458,6 +471,7 @@ const CheckoutPage = () => {
             secondaryButtonStyle={secondaryButtonStyle}
             primaryButtonStyle={primaryButtonStyle}
             getAddressId={getAddressId}
+            clientData={clientProfile}
           />
         )}
       </div>

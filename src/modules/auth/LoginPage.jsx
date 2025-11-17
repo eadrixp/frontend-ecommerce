@@ -40,8 +40,6 @@ const LoginPage = () => {
           return;
         }
       } catch (adminError) {
-        // Si falla el login de admin, intentamos como cliente
-        console.log("Login de admin falló, intentando como cliente...");
       }
 
       // Intentamos login como cliente
@@ -60,7 +58,6 @@ const LoginPage = () => {
             }, 500);
           } catch (profileError) {
             // Si no tiene perfil de cliente, redirigir a completar perfil
-            console.log("Cliente sin perfil completo, redirigiendo a registro...");
             setTimeout(() => {
               navigate("/cliente/registro");
             }, 500);
@@ -68,7 +65,6 @@ const LoginPage = () => {
           return;
         }
       } catch (clienteError) {
-        console.log("Login de cliente también falló");
       }
 
       // Si ambos fallan

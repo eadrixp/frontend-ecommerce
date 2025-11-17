@@ -11,15 +11,11 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
 
   const setToken = (newToken, userData = null) => {
-    console.log('🔐 setToken called with:', { newToken: newToken ? 'Token received' : 'No token', userData });
-    
     if (newToken) {
-      console.log('✅ Saving token to storage:', newToken.substring(0, 20) + '...');
       saveToken(newToken);
       setTokenState(newToken);
       setUser(userData);
     } else {
-      console.log('❌ Removing token from storage');
       removeToken();
       setTokenState(null);
       setUser(null);
@@ -28,8 +24,6 @@ export const AuthProvider = ({ children }) => {
 
   // Login con redirección automática según el rol
   const loginWithRedirect = async (userData, returnPath = null) => {
-    console.log('🔐 loginWithRedirect recibió:', userData);
-    
     if (userData && userData.token) {
       // Establecer token y datos de usuario
       setToken(userData.token, userData.user || userData);
@@ -56,7 +50,6 @@ export const AuthProvider = ({ children }) => {
   // Verificar solo el token (más permisivo)
   const hasValidToken = () => {
     const hasToken = !!token;
-    console.log("🔑 Token check:", hasToken);
     return hasToken;
   };
 
@@ -68,14 +61,10 @@ export const AuthProvider = ({ children }) => {
     // Si tenemos token pero no user, asumir que es válido
     // (puede pasar si loadUserProfile falla pero el login fue exitoso)
     if (hasToken && !hasUser) {
-      console.log("🔐 Auth check - Token válido, user data no disponible, asumiendo sesión válida");
       return true;
     }
     
     const isClienteRole = user && isCliente(user);
-    
-    console.log("🔐 Auth check - Token:", hasToken, "User:", hasUser, "Is Cliente:", isClienteRole);
-    console.log("🔐 User data:", user);
     
     return hasToken && (hasUser ? isClienteRole : true);
   };
@@ -95,12 +84,9 @@ export const AuthProvider = ({ children }) => {
   // Cargar perfil del usuario desde el servidor
   const loadUserProfile = useCallback(async () => {
     try {
-      console.log('🔄 Intentando cargar perfil del usuario...');
       const profileData = await getClienteProfile();
-      console.log('✅ Perfil cargado exitosamente:', profileData);
       setUser(profileData);
     } catch (error) {
-      console.warn('⚠️ Error cargando perfil del usuario:', error);
       // NO cerrar sesión automáticamente - solo loggear el error
       // El usuario puede seguir usando la app con los datos básicos del login
     }
@@ -109,10 +95,7 @@ export const AuthProvider = ({ children }) => {
   // Crear perfil de cliente
   const createClientProfile = async (clienteData) => {
     try {
-      console.log('📝 Creando perfil de cliente...', clienteData);
       const profileData = await createClienteProfile(clienteData);
-      console.log('✅ Perfil de cliente creado exitosamente:', profileData);
-      
       // Actualizar el estado del usuario con el nuevo perfil
       setUser(prevUser => ({
         ...prevUser,
@@ -121,7 +104,6 @@ export const AuthProvider = ({ children }) => {
       
       return profileData;
     } catch (error) {
-      console.error('❌ Error creando perfil de cliente:', error);
       throw error;
     }
   };
@@ -129,7 +111,6 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const stored = getToken();
     if (stored) {
-      console.log('🔑 Token encontrado en localStorage, restaurando sesión...');
       setTokenState(stored);
       // Nota: No cargar perfil automáticamente aquí
       // El perfil se carga después del login explícito
