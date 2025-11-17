@@ -6,6 +6,7 @@ import { createOrder } from "../../services/orderService";
 import { validatePaymentData } from "../../services/paymentService";
 import { getClienteProfile } from "../../services/clienteAuthService";
 import { Step1Address, Step2Payment, Step3Review } from "./components/CheckoutProcess";
+import OrderConfirmationModal from "./components/CheckoutProcess/OrderConfirmationModal/OrderConfirmationModal";
 import './Checkout.css';
 import './components/CheckoutProcess/CheckoutProcess.css';
 import { FiAlertTriangle } from 'react-icons/fi';
@@ -62,10 +63,35 @@ const CheckoutPage = () => {
   const [paymentErrors, setPaymentErrors] = useState({});
 
   // Order data
-  const [orderNotes, setOrderNotes] = useState("");  // Helper function
+  const [orderNotes, setOrderNotes] = useState("");
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [createdOrder, setCreatedOrder] = useState(null);
+
+  // Helper function
   const getAddressId = (address) => {
     return address?.id || address?.id_direccion || address?.direccion_id;
   };
+
+  /**
+   * Obtiene el ID del método de pago verificado del cliente
+   * Busca en selectedPaymentMethod el id_metodo_pago_cliente
+   */
+  const getPaymentMethodId = useCallback(() => {
+    if (!selectedPaymentMethod) return null;
+    
+    // Si es un método de pago guardado, tiene savedMethodData con id_metodo_pago_cliente
+    if (selectedPaymentMethod.savedMethodData?.id_metodo_pago_cliente) {
+      return selectedPaymentMethod.savedMethodData.id_metodo_pago_cliente;
+    }
+    
+    // Si es un método guardado, puede tener el ID directamente
+    if (selectedPaymentMethod.id_metodo_pago_cliente) {
+      return selectedPaymentMethod.id_metodo_pago_cliente;
+    }
+    
+    // Si es un método nuevo sin ID, necesita ser verificado primero
+    return null;
+  }, [selectedPaymentMethod]);
 
 
 
@@ -261,24 +287,74 @@ const CheckoutPage = () => {
     setError("");
     
     try {
+      // Validaciones previas
+      if (!selectedAddressId) {
+        setError("Por favor selecciona una dirección de envío");
+        setLoading(false);
+        return;
+      }
+
+      if (!selectedPaymentMethod) {
+        setError("Por favor selecciona un método de pago");
+        setLoading(false);
+        return;
+      }
+
+      // Obtener ID del método de pago verificado
+      const paymentMethodId = getPaymentMethodId();
+      if (!paymentMethodId) {
+        setError("El método de pago debe estar verificado antes de crear la orden");
+        setLoading(false);
+        return;
+      }
+
+      // Construir orderData según lo esperado por el backend
+      // POST /api/ordenes espera:
+      // {
+      //   id_metodo_pago_cliente: number,
+      //   id_direccion: number,
+      //   notas_orden?: string
+      // }
       const orderData = {
-        direccion_id: selectedAddressId,
-        metodo_pago: selectedPaymentMethod?.tipo_metodo,
-        productos: cartItems.map(item => ({
-          producto_id: item.id,
-          cantidad: item.cantidad,
-          precio_unitario: item.precio
-        })),
-        notas: orderNotes,
-        datos_pago: paymentData
+        id_metodo_pago_cliente: paymentMethodId,
+        id_direccion: selectedAddressId,
+        notas_orden: orderNotes || undefined
       };
 
-      const order = await createOrder(orderData);
-      navigate('/orden-confirmada', { state: { order } });
+      console.log("📦 Creando orden con datos:", orderData);
+
+      // Llamar al servicio para crear la orden
+      const response = await createOrder(orderData);
+      
+      // Validar respuesta
+      if (!response || !response.success || !response.data) {
+        throw new Error(response?.message || "Error al crear la orden");
+      }
+
+      const orden = response.data;
+      
+      // Guardar orden y mostrar modal
+      setCreatedOrder(orden);
+      setShowConfirmationModal(true);
       
     } catch (error) {
-      console.error('Error creando orden:', error);
-      setError(error.message);
+      console.error("❌ Error creando orden:", error);
+      
+      // Manejo de errores específicos del backend
+      const errorMessage = error.response?.data?.message || error.message;
+      const errorCode = error.response?.data?.code;
+
+      if (errorCode === "METODO_NO_VERIFICADO") {
+        setError("El método de pago debe estar verificado. Por favor intenta de nuevo.");
+      } else if (errorCode === "CARRITO_VACIO") {
+        setError("Tu carrito está vacío. Agrega productos antes de crear la orden.");
+      } else if (errorCode === "STOCK_INSUFICIENTE") {
+        setError("Stock insuficiente para uno o más productos. Revisa tu carrito.");
+      } else if (errorCode === "ACCESO_DENEGADO") {
+        setError("No tienes permiso para usar esta dirección o método de pago.");
+      } else {
+        setError(errorMessage || "Error al crear la orden. Intenta de nuevo.");
+      }
     } finally {
       setLoading(false);
     }
@@ -475,6 +551,13 @@ const CheckoutPage = () => {
           />
         )}
       </div>
+
+      {/* Modal de confirmación de orden */}
+      <OrderConfirmationModal
+        isOpen={showConfirmationModal}
+        order={createdOrder}
+        onClose={() => setShowConfirmationModal(false)}
+      />
     </div>
   );
 };
