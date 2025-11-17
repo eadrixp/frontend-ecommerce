@@ -84,12 +84,75 @@ const NewPaymentMethodModal = ({
 
       // Construir el payload del método de pago con campos originales
       // El backend normaliza automáticamente los nombres de campos
-      const payload = {
+      // Solo incluir campos relevantes para el tipo de método
+      const basePayload = {
         id_metodo_pago: selectedMethod.id_metodo_pago,
         alias: alias.trim(),
         es_predeterminado: isDefault,
-        ...paymentData, // Incluir todos los datos del formulario
       };
+
+      let payload = { ...basePayload };
+
+      // Agregar campos específicos según el tipo de método
+      switch (selectedMethod.tipo_metodo) {
+        case 'tarjeta_credito':
+        case 'tarjeta_debito':
+          // Convertir fecha de MM/YY a DD-MM-YYYY (primer día del mes)
+          let fechaFormato = paymentData.fecha_expiracion || '';
+          if (fechaFormato && fechaFormato.includes('/')) {
+            const [mes, anio] = fechaFormato.split('/');
+            fechaFormato = `01-${mes}-20${anio}`;
+          }
+
+          // Extraer solo los últimos 4 dígitos de la tarjeta
+          const numeroTarjeta = (paymentData.numero_tarjeta || '').replace(/\s/g, '');
+          const ultimosCuatro = numeroTarjeta.slice(-4);
+
+          payload = {
+            ...payload,
+            numero_tarjeta: ultimosCuatro,
+            nombre_titular: paymentData.nombre_titular || '',
+            fecha_expiracion: fechaFormato,
+            tipo_tarjeta: paymentData.tipo_tarjeta || '',
+            banco: paymentData.banco || '',
+          };
+          break;
+
+        case 'billetera_digital':
+          payload = {
+            ...payload,
+            email_paypal: paymentData.email_paypal || '',
+          };
+          break;
+
+        case 'transferencia_bancaria':
+          payload = {
+            ...payload,
+            numero_transaccion: paymentData.numero_transaccion || '',
+            banco_origen: paymentData.banco_origen || '',
+            numero_cuenta: paymentData.numero_cuenta || '',
+            titular_cuenta: paymentData.titular_cuenta || '',
+          };
+          break;
+
+        case 'criptomoneda':
+          payload = {
+            ...payload,
+            wallet_address: paymentData.wallet_address || '',
+          };
+          break;
+
+        case 'efectivo':
+          payload = {
+            ...payload,
+            entrega: paymentData.entrega || 'contra_entrega',
+          };
+          break;
+
+        default:
+          // Si es un tipo desconocido, solo enviar base
+          payload = basePayload;
+      }
 
       console.log('Payload enviado al backend:', JSON.stringify(payload, null, 2));
       console.log('Tipo de método:', selectedMethod.tipo_metodo);
