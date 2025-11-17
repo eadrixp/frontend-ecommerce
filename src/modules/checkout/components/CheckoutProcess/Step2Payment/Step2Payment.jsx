@@ -68,6 +68,10 @@ const Step2Payment = ({
   };
 
   const handleNewMethodSelect = (method) => {
+    // El método recibido es el que se acaba de guardar
+    // Recargar la lista de métodos para mostrar el nuevo
+    loadClientPaymentMethods();
+    
     onPaymentMethodChange(method);
     onPaymentDataChange({});
     setErrors({});
