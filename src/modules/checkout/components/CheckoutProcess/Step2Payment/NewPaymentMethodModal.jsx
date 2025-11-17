@@ -114,8 +114,12 @@ const NewPaymentMethodModal = ({
             nombre_titular: paymentData.nombre_titular || '',
             fecha_expiracion: fechaFormato,
             tipo_tarjeta: paymentData.tipo_tarjeta || '',
-            banco: paymentData.banco || '',
           };
+
+          // Solo agregar banco si tiene valor
+          if (paymentData.banco && paymentData.banco.trim()) {
+            payload.banco = paymentData.banco;
+          }
           break;
 
         case 'billetera_digital':
