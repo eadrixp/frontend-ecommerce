@@ -59,7 +59,13 @@ const PaymentMethodForm = ({
       );
 
     case 'efectivo':
-      return <CashPaymentForm />;
+      return (
+        <CashPaymentForm
+          paymentData={paymentData}
+          onPaymentDataChange={onPaymentDataChange}
+          errors={errors}
+        />
+      );
 
     case 'criptomoneda':
       return (

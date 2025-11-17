@@ -1,6 +1,17 @@
 import React from 'react';
 
-const CashPaymentForm = () => {
+const CashPaymentForm = ({ 
+  paymentData, 
+  onPaymentDataChange, 
+  errors = {} 
+}) => {
+  const handleChange = (field, value) => {
+    onPaymentDataChange({
+      ...paymentData,
+      [field]: value
+    });
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-lg)' }}>
       <div style={{
@@ -51,6 +62,21 @@ const CashPaymentForm = () => {
             <strong>Nota:</strong> Asegúrate de estar disponible en la fecha de entrega. Si no puedes recibir, el transportista hará un segundo intento.
           </p>
         </div>
+      </div>
+
+      <div className="form-group">
+        <label>Tipo de entrega *</label>
+        <select
+          value={paymentData.entrega || ''}
+          onChange={(e) => handleChange('entrega', e.target.value)}
+          className={errors.entrega ? 'error' : ''}
+        >
+          <option value="">Selecciona tipo de entrega</option>
+          <option value="contra_entrega">Contra Entrega</option>
+        </select>
+        {errors.entrega && (
+          <div className="form-error">{errors.entrega}</div>
+        )}
       </div>
     </div>
   );

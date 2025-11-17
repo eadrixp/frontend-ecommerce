@@ -111,27 +111,35 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
       break;
 
     case 'billetera_digital': // PayPal
-      if (!paymentData.email_paypal) {
+      // Buscar en email_billetera (nuevo) o email_paypal (compatibilidad)
+      const emailField = paymentData.email_billetera || paymentData.email_paypal;
+      if (!emailField) {
         errors.push('Email de PayPal es requerido');
-      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paymentData.email_paypal)) {
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailField)) {
         errors.push('Email de PayPal inválido');
       }
       break;
 
     case 'transferencia_bancaria':
-      if (!paymentData.numero_transaccion) {
+      // Buscar en identificador_externo (nuevo) o numero_transaccion (compatibilidad)
+      const transactionField = paymentData.identificador_externo || paymentData.numero_transaccion;
+      if (!transactionField) {
         errors.push('Número de transacción es requerido');
       }
       break;
 
     case 'efectivo':
-      if (!paymentData.entrega) {
+      // Buscar en identificador_externo (nuevo) o entrega (compatibilidad)
+      const deliveryField = paymentData.identificador_externo || paymentData.entrega;
+      if (!deliveryField) {
         errors.push('Tipo de entrega es requerido');
       }
       break;
 
     case 'criptomoneda': // Bitcoin
-      if (!paymentData.wallet_address) {
+      // Buscar en identificador_externo (nuevo) o wallet_address (compatibilidad)
+      const walletField = paymentData.identificador_externo || paymentData.wallet_address;
+      if (!walletField) {
         errors.push('Dirección de wallet es requerida');
       }
       break;
@@ -390,4 +398,134 @@ export const formatExpirationDate = (date) => {
     return cleanDate.substring(0, 2) + '/' + cleanDate.substring(2, 4);
   }
   return cleanDate;
+};
+
+/**
+ * Construye el payload correcto para tarjeta de crédito/débito
+ * Según especificaciones del backend:
+ * - NO enviar número completo ni CVV
+ * - Enviar solo últimos 4 dígitos
+ * - Convertir fecha de MM/YY a YYYY-MM-DD
+ * @param {Object} formData - Datos del formulario
+ * @returns {Object} Payload normalizado para el backend
+ */
+export const buildCreditCardPayload = (formData) => {
+  // 1. Extraer últimos 4 dígitos del número de tarjeta
+  const numeroLimpio = formData.numero_tarjeta.replace(/\s/g, '');
+  const ultimosCuatro = numeroLimpio.slice(-4);
+  
+  // 2. Convertir fecha de MM/YY a YYYY-MM-DD
+  const [mes, anio] = formData.fecha_expiracion.split('/');
+  const anioCompleto = `20${anio}`;
+  const fechaISO = `${anioCompleto}-${mes}-01`;
+  
+  // 3. Construir payload sin CVV ni número completo
+  return {
+    id_metodo_pago: formData.id_metodo_pago,
+    alias: formData.alias,
+    numero_tarjeta_ultimos_4: ultimosCuatro,
+    nombre_titular: formData.nombre_titular,
+    fecha_expiracion: fechaISO,
+    tipo_tarjeta: formData.tipo_tarjeta || 'unknown',
+    banco: formData.banco || '',
+    es_predeterminado: formData.es_predeterminado || false
+  };
+};
+
+/**
+ * Construye el payload correcto para billetera digital (PayPal)
+ * Según especificaciones del backend:
+ * - Renombrar email_paypal → email_billetera
+ * @param {Object} formData - Datos del formulario
+ * @returns {Object} Payload normalizado para el backend
+ */
+export const buildDigitalWalletPayload = (formData) => {
+  return {
+    id_metodo_pago: formData.id_metodo_pago,
+    alias: formData.alias,
+    email_billetera: formData.email_billetera,
+    es_predeterminado: formData.es_predeterminado || false
+  };
+};
+
+/**
+ * Construye el payload correcto para transferencia bancaria
+ * Según especificaciones del backend:
+ * - numero_transaccion → identificador_externo
+ * - banco_origen → banco
+ * - titular_cuenta → nombre_titular
+ * @param {Object} formData - Datos del formulario
+ * @returns {Object} Payload normalizado para el backend
+ */
+export const buildBankTransferPayload = (formData) => {
+  return {
+    id_metodo_pago: formData.id_metodo_pago,
+    alias: formData.alias,
+    identificador_externo: formData.identificador_externo,
+    banco: formData.banco || '',
+    numero_cuenta: formData.numero_cuenta || '',
+    nombre_titular: formData.nombre_titular || '',
+    es_predeterminado: formData.es_predeterminado || false
+  };
+};
+
+/**
+ * Construye el payload correcto para criptomoneda (Bitcoin)
+ * Según especificaciones del backend:
+ * - wallet_address → identificador_externo
+ * @param {Object} formData - Datos del formulario
+ * @returns {Object} Payload normalizado para el backend
+ */
+export const buildCryptoPayload = (formData) => {
+  return {
+    id_metodo_pago: formData.id_metodo_pago,
+    alias: formData.alias,
+    identificador_externo: formData.identificador_externo,
+    es_predeterminado: formData.es_predeterminado || false
+  };
+};
+
+/**
+ * Construye el payload correcto para efectivo (contra entrega)
+ * Según especificaciones del backend:
+ * - entrega → identificador_externo
+ * @param {Object} formData - Datos del formulario
+ * @returns {Object} Payload normalizado para el backend
+ */
+export const buildCashPayload = (formData) => {
+  return {
+    id_metodo_pago: formData.id_metodo_pago,
+    alias: formData.alias,
+    identificador_externo: formData.identificador_externo || 'contra_entrega',
+    es_predeterminado: formData.es_predeterminado || false
+  };
+};
+
+/**
+ * Construye el payload correcto basado en el tipo de método de pago
+ * @param {Object} formData - Datos del formulario
+ * @param {string} paymentMethod - Tipo de método de pago (tipo_metodo de la API)
+ * @returns {Object} Payload normalizado para el backend
+ */
+export const buildPaymentMethodPayload = (formData, paymentMethod) => {
+  switch (paymentMethod) {
+    case 'tarjeta_credito':
+    case 'tarjeta_debito':
+      return buildCreditCardPayload(formData);
+    
+    case 'billetera_digital':
+      return buildDigitalWalletPayload(formData);
+    
+    case 'transferencia_bancaria':
+      return buildBankTransferPayload(formData);
+    
+    case 'criptomoneda':
+      return buildCryptoPayload(formData);
+    
+    case 'efectivo':
+      return buildCashPayload(formData);
+    
+    default:
+      return formData;
+  }
 };

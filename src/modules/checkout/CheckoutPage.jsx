@@ -50,11 +50,13 @@ const CheckoutPage = () => {
     fecha_expiracion: "",
     tipo_tarjeta: "",
     banco: "",
+    email_billetera: "",
     email_paypal: "",
     banco_origen: "",
     numero_cuenta: "",
     titular_cuenta: "",
     numero_transaccion: "",
+    identificador_externo: "",
     wallet_address: "",
     entrega: "contra_entrega"
   });
