@@ -123,19 +123,7 @@ const CreditCardForm = ({
         )}
       </div>
 
-      {!isSaved && (
-        <div className="form-checkbox">
-          <input
-            type="checkbox"
-            id="save-payment"
-            checked={paymentData.save_method || false}
-            onChange={(e) => handleChange('save_method', e.target.checked)}
-          />
-          <label htmlFor="save-payment">
-            Guardar este método de pago para futuras compras
-          </label>
-        </div>
-      )}
+
     </div>
   );
 };

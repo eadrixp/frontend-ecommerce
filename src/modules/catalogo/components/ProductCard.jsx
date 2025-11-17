@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { FiShoppingCart, FiHeart, FiStar } from 'react-icons/fi';
+import { FiShoppingCart, FiStar } from 'react-icons/fi';
 import { getImageUrl } from '../../../utils/imageUtils';
 
 const ProductCard = ({ producto, onAddToCart }) => {
   const [imageError, setImageError] = useState(false);
-  const [isFavorite, setIsFavorite] = useState(false);
 
   // Usar imagen del producto o placeholder si no hay imagen
   const imageUrl = getImageUrl(producto.imagen_url);
@@ -50,35 +49,6 @@ const ProductCard = ({ producto, onAddToCart }) => {
             -{descuento}%
           </div>
         )}
-
-        {/* Favorite Button */}
-        <button
-          style={{
-            position: 'absolute',
-            top: '12px',
-            left: '12px',
-            background: 'white',
-            border: 'none',
-            borderRadius: '50%',
-            width: '40px',
-            height: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            transition: 'all 150ms cubic-bezier(0.4, 0, 0.2, 1)',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            zIndex: 5,
-          }}
-          onClick={() => setIsFavorite(!isFavorite)}
-          aria-label="Agregar a favoritos"
-        >
-          <FiHeart
-            size={20}
-            fill={isFavorite ? '#e74c3c' : 'none'}
-            stroke={isFavorite ? '#e74c3c' : '#1a2e4a'}
-          />
-        </button>
       </div>
 
       {/* Content */}
