@@ -1,5 +1,6 @@
 import React from "react";
-import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin } from 'react-icons/fi';
+//import { CgEnter } from "react-icons/cg";
+//import { FiFacebook, FiTwitter, FiInstagram, FiLinkedin } from 'react-icons/fi';
 
 const CatalogoFooter = () => {
   const currentYear = new Date().getFullYear();
@@ -51,14 +52,12 @@ const CatalogoFooter = () => {
 
       <div className="catalogo-footer-divider"></div>
 
-      <div className="catalogo-footer-bottom">
+      <div className="catalogo-footer-info" style={{textAlign:"center"}}>
         <div>
-          © {currentYear} Nexxus Tecnology. Todos los derechos reservados.
+          <div>© {currentYear} Nexxus Tecnology. Todos los derechos reservados.</div>
+          <div>Desarrollado por Altiplano Verde</div>
         </div>
-        <div className="catalogo-footer-developer">
-          Desarrollado por Altiplano Verde
-        </div>
-        <div className="catalogo-footer-social">
+        {/*<div className="catalogo-footer-social">
           <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" title="Facebook">
             <FiFacebook size={20} />
           </a>
@@ -71,7 +70,7 @@ const CatalogoFooter = () => {
           <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" title="LinkedIn">
             <FiLinkedin size={20} />
           </a>
-        </div>
+        </div>*/}
       </div>
     </footer>
   );
