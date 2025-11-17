@@ -76,7 +76,8 @@ const CheckoutPage = () => {
       if (Array.isArray(addressList) && addressList.length > 0) {
         const mainAddress = addressList.find(addr => addr.es_principal);
         if (mainAddress) {
-          setSelectedAddressId(getAddressId(mainAddress));
+          const mainId = getAddressId(mainAddress);
+          setSelectedAddressId(mainId);
         }
       }
     } catch (error) {
@@ -390,7 +391,9 @@ const CheckoutPage = () => {
           <Step1Address
             addresses={addresses}
             selectedAddressId={selectedAddressId}
-            onAddressSelect={setSelectedAddressId}
+            onAddressSelect={(id) => {
+              setSelectedAddressId(id);
+            }}
             loading={loading}
             error={error}
             showAddressModal={showAddressModal}
@@ -419,7 +422,9 @@ const CheckoutPage = () => {
         {step === 2 && (
           <Step2Payment
             selectedPaymentMethod={selectedPaymentMethod}
-            onPaymentMethodChange={setSelectedPaymentMethod}
+            onPaymentMethodChange={(method) => {
+              setSelectedPaymentMethod(method);
+            }}
             paymentData={paymentData}
             onPaymentDataChange={setPaymentData}
             errors={paymentErrors}

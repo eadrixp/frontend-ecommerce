@@ -1,5 +1,7 @@
 import React from "react";
-import { FiEdit, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { useNavigate } from "react-router-dom";
+import { FiEdit, FiPlus, FiTrash2} from 'react-icons/fi';
+import SelectionList from "../../shared/SelectionList";
 import AddressModal from "./AddressModal";
 import DeleteConfirmModal from "./DeleteConfirmModal";
 
@@ -28,6 +30,7 @@ const Step1Address = ({
   secondaryButtonStyle,
   primaryButtonStyle
 }) => {
+  const navigate = useNavigate();
   return (
     <div>
       <h2 style={{ fontSize: "1.5rem", fontWeight: "bold", marginBottom: "1.5rem" }}>
@@ -35,104 +38,40 @@ const Step1Address = ({
       </h2>
 
       {addresses.length > 0 && (
-        <div style={formGroupStyle}>
-          <label style={labelStyle}>Seleccionar dirección:</label>
-          {addresses.map(address => {
-            const addressId = getAddressId(address);
-            const isSelected = selectedAddressId === addressId;
-            return (
-              <div 
-                key={addressId} 
-                onClick={() => onAddressSelect(addressId)}
-                style={{
-                  border: isSelected ? "2px solid #2563eb" : "1px solid #e5e7eb",
-                  borderRadius: "8px",
-                  padding: "1rem",
-                  marginBottom: "0.5rem",
-                  cursor: "pointer",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  backgroundColor: isSelected ? "#eff6ff" : "white",
-                  transition: "all 0.2s ease"
-                }}
-              >
-                <div style={{ flex: 1, display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
-                  <input
-                    type="radio"
-                    name="addressSelection"
-                    checked={isSelected}
-                    onChange={() => onAddressSelect(addressId)}
-                    style={{ 
-                      marginTop: "0.25rem",
-                      cursor: "pointer"
-                    }}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  <div style={{ flex: 1 }}>
-                    <strong>{address.calle}</strong><br/>
-                    {address.ciudad}, {address.estado}, {address.codigo_postal}<br/>
-                    {address.pais}
-                    {address.es_principal && (
-                      <span style={{ 
-                        backgroundColor: "#2563eb", 
-                        color: "white", 
-                        fontSize: "0.75rem", 
-                        padding: "0.25rem 0.5rem", 
-                        borderRadius: "4px",
-                        marginLeft: "0.5rem"
-                      }}>
-                        Principal
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <div style={{ display: "flex", gap: "0.5rem" }}>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenAddressModal(address);
-                    }}
-                    style={{
-                      background: "none",
-                      border: "1px solid #e5e7eb",
-                      borderRadius: "6px",
-                      padding: "0.5rem",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      color: "#6b7280"
-                    }}
-                    title="Editar dirección"
-                  >
-                    <FiEdit size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onOpenDeleteConfirm(address);
-                    }}
-                    style={{
-                      background: "none",
-                      border: "1px solid #fca5a5",
-                      borderRadius: "6px",
-                      padding: "0.5rem",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      color: "#dc2626"
-                    }}
-                    title="Eliminar dirección"
-                  >
-                    <FiTrash2 size={16} />
-                  </button>
-                </div>
-              </div>
-            );
+        <SelectionList
+          items={addresses}
+          selectedId={selectedAddressId}
+          onSelectItem={(itemId, item) => {
+            const addressId = getAddressId(item);
+            onAddressSelect(addressId);
+          }}
+          onEditItem={(address) => onOpenAddressModal(address)}
+          onDeleteItem={(address) => onOpenDeleteConfirm(address)}
+          getItemContent={(address) => ({
+            primary: address.calle,
+            secondary: `${address.ciudad}, ${address.estado}, ${address.codigo_postal}, ${address.pais}`,
+            badge: address.es_principal ? "Principal" : null
           })}
-        </div>
+          renderBadge={(badge) => (
+            <span style={{ 
+              backgroundColor: "#2563eb", 
+              color: "red", 
+              fontSize: "0.75rem", 
+              padding: "0.25rem 0.5rem", 
+              borderRadius: "4px",
+              marginLeft: "0.5rem"
+            }}>
+              {badge}
+            </span>
+          )}
+          loading={loading}
+          emptyMessage="No tienes direcciones guardadas. Agrega una nueva dirección para continuar."
+          formGroupStyle={formGroupStyle}
+          labelStyle={labelStyle}
+          editIcon={<FiEdit size={16} />}
+          deleteIcon={<FiTrash2 size={16} />}
+          title="Seleccionar dirección:"
+        />
       )}
 
       {addresses.length === 0 && (
@@ -166,12 +105,19 @@ const Step1Address = ({
         Agregar Nueva Dirección
       </button>
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2rem" }}>
+      <div style={{ display: "flex",justifyContent: "space-between", marginTop: "2rem" }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={secondaryButtonStyle}
+        >
+          Volver
+        </button>        
         <button
           onClick={onNextStep}
           disabled={!selectedAddressId}
           style={{
             ...primaryButtonStyle,
+            justifyContent: "flex-end",
             opacity: !selectedAddressId ? 0.5 : 1,
             cursor: !selectedAddressId ? "not-allowed" : "pointer"
           }}

@@ -1,4 +1,5 @@
 import React from 'react';
+import SelectionList from '../shared/SelectionList';
 
 const PaymentMethodsList = ({ 
   paymentMethods = [],
@@ -12,11 +13,10 @@ const PaymentMethodsList = ({
   if (loading) {
     return (
       <div style={{ 
-        padding: 'var(--spacing-xl)', 
+        padding: '1rem', 
         textAlign: 'center',
-        color: 'var(--text-secondary)'
+        color: '#6b7280'
       }}>
-        <div className="loading-spinner" style={{ display: 'inline-block', marginRight: 'var(--spacing-md)' }}></div>
         Cargando métodos de pago...
       </div>
     );
@@ -25,119 +25,102 @@ const PaymentMethodsList = ({
   if (error) {
     return (
       <div style={{
-        padding: 'var(--spacing-lg)',
+        padding: '1rem',
         backgroundColor: '#ffe0e0',
-        border: '1px solid var(--danger-color)',
-        borderRadius: 'var(--radius-sm)',
-        color: 'var(--danger-color)',
-        fontSize: 'var(--font-size-sm)'
+        border: '1px solid #dc2626',
+        borderRadius: '8px',
+        color: '#dc2626',
+        fontSize: '0.875rem'
       }}>
         {error}
       </div>
     );
   }
 
+  const formGroupStyle = {
+    marginBottom: "1.5rem"
+  };
+
+  const labelStyle = {
+    display: "block",
+    marginBottom: "0.75rem",
+    fontWeight: "500",
+    color: "#374151",
+    fontSize: "0.875rem"
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2xl)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       {/* Métodos guardados */}
       {clientPaymentMethods.length > 0 && (
         <div>
           <h4 style={{
-            marginBottom: 'var(--spacing-lg)',
-            color: 'var(--text-primary)',
-            fontSize: 'var(--font-size-sm)',
-            fontWeight: 'var(--font-weight-semibold)',
+            marginBottom: '1rem',
+            color: '#1f2937',
+            fontSize: '0.875rem',
+            fontWeight: '600',
             textTransform: 'uppercase',
             letterSpacing: '0.5px'
           }}>
             Métodos guardados
           </h4>
-          <div className="selection-list">
-            {clientPaymentMethods.map((savedMethod) => {
-              const isSelected = selectedPaymentMethod?.savedMethodData?.id_metodo_pago_cliente === savedMethod.id_metodo_pago_cliente;
-
-              return (
-                <div
-                  key={savedMethod.id_metodo_pago_cliente}
-                  className={`selection-item ${isSelected ? 'selected' : ''}`}
-                  onClick={() => onSelectSavedMethod(savedMethod)}
-                >
-                  <input
-                    type="radio"
-                    name="saved-payment-methods"
-                    checked={isSelected}
-                    onChange={() => {}}
-                    style={{ cursor: 'pointer' }}
-                  />
-                  <div className="selection-content">
-                    <div className="selection-title">{savedMethod.alias}</div>
-                    <div className="selection-description">
-                      {savedMethod.metodoPago.nombre_metodo} ****{savedMethod.numero_tarjeta_ultimos_4}
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)' }}>
-                    {savedMethod.verificado ? (
-                      <span style={{ color: 'var(--success-color)' }}>✓ Verificado</span>
-                    ) : (
-                      <span style={{ color: 'var(--warning-color)' }}>⚠ No verificado</span>
-                    )}
-                  </div>
-                </div>
-              );
+          <SelectionList
+            items={clientPaymentMethods}
+            selectedId={selectedPaymentMethod?.savedMethodData?.id_metodo_pago_cliente}
+            onSelectItem={(id, item) => {
+              onSelectSavedMethod(item);
+            }}
+            getItemContent={(savedMethod) => ({
+              primary: savedMethod.alias,
+              secondary: `${savedMethod.metodoPago.nombre_metodo} ****${savedMethod.numero_tarjeta_ultimos_4}`,
+              badge: savedMethod.verificado ? { status: 'verified' } : { status: 'unverified' }
             })}
-          </div>
+            renderBadge={(badge) => (
+              badge.status === 'verified' ? (
+                <span style={{ color: '#10b981', fontSize: '0.875rem', fontWeight: '500', marginLeft: '0.5rem' }}>
+                  ✓ Verificado
+                </span>
+              ) : (
+                <span style={{ color: '#f59e0b', fontSize: '0.875rem', fontWeight: '500', marginLeft: '0.5rem' }}>
+                  ⚠ No verificado
+                </span>
+              )
+            )}
+            formGroupStyle={formGroupStyle}
+            labelStyle={labelStyle}
+            emptyMessage="No tienes métodos de pago guardados."
+          />
         </div>
       )}
 
       {/* Métodos disponibles */}
       <div>
         <h4 style={{
-          marginBottom: 'var(--spacing-lg)',
-          color: 'var(--text-primary)',
-          fontSize: 'var(--font-size-sm)',
-          fontWeight: 'var(--font-weight-semibold)',
+          marginBottom: '1rem',
+          color: '#1f2937',
+          fontSize: '0.875rem',
+          fontWeight: '600',
           textTransform: 'uppercase',
           letterSpacing: '0.5px'
         }}>
           {clientPaymentMethods.length > 0 ? 'Nuevo método de pago' : 'Métodos de pago disponibles'}
         </h4>
-        <div className="selection-list">
-          {paymentMethods.map((method) => {
-            const isSelected = selectedPaymentMethod?.id === method.id && !selectedPaymentMethod?.isSaved;
-
-            return (
-              <div
-                key={method.id}
-                className={`selection-item ${isSelected ? 'selected' : ''}`}
-                onClick={() => onSelectMethod(method)}
-              >
-                <input
-                  type="radio"
-                  name="available-payment-methods"
-                  checked={isSelected}
-                  onChange={() => {}}
-                  style={{ cursor: 'pointer' }}
-                />
-                {method.icono_url && (
-                  <img
-                    src={method.icono_url}
-                    alt={method.nombre_metodo}
-                    style={{ width: '32px', height: '32px', marginRight: 'var(--spacing-md)' }}
-                    onError={(e) => {
-                      e.target.style.display = 'none';
-                    }}
-                  />
-                )}
-                <div className="selection-content">
-                  <div className="selection-title">{method.nombre_metodo}</div>
-                  <div className="selection-description">
-                    {method.tipo_metodo.replace(/_/g, ' ')}
-                  </div>
-                </div>
-              </div>
-            );
+        <SelectionList
+          items={paymentMethods}
+          selectedId={selectedPaymentMethod?.id_metodo_pago}
+          onSelectItem={(id, item) => {
+            onSelectMethod(item);
+          }}
+          getItemContent={(method) => ({
+            primary: method.nombre_metodo,
+            secondary: method.tipo_metodo.replace(/_/g, ' '),
+            icon: method.icono_url
           })}
-        </div>
+          renderBadge={() => null}
+          formGroupStyle={formGroupStyle}
+          labelStyle={labelStyle}
+          emptyMessage={clientPaymentMethods.length > 0 ? "No hay nuevos métodos disponibles." : "No hay métodos de pago disponibles."}
+        />
       </div>
     </div>
   );

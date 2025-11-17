@@ -35,6 +35,33 @@ export const getPaymentMethods = async () => {
 };
 
 /**
+ * Obtiene un método de pago específico por ID
+ * @param {number} paymentMethodId - ID del método de pago
+ * @returns {Object} Método de pago específico
+ */
+export const getPaymentMethodById = async (paymentMethodId) => {
+  try {
+    const response = await apiClient.get(`/metodos-pago/${paymentMethodId}`);
+    console.log(' Método de pago obtenido:', response.data);
+    
+    return {
+      success: true,
+      data: response.data.data
+    };
+  } catch (error) {
+    console.error(' Error obteniendo método de pago:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
  * Valida los datos de pago según el método seleccionado
  * @param {string} paymentMethod - Tipo de método de pago
  * @param {Object} paymentData - Datos del método de pago
@@ -165,6 +192,59 @@ export const getClientPaymentMethods = async () => {
 };
 
 /**
+ * Obtiene un método de pago específico del cliente por ID
+ * @param {number} clientPaymentMethodId - ID del método de pago del cliente
+ * @returns {Object} Método de pago del cliente
+ */
+export const getClientPaymentMethodById = async (clientPaymentMethodId) => {
+  try {
+    const response = await apiClient.get(`/metodos-pago-cliente/${clientPaymentMethodId}`);
+    console.log(' Método de pago del cliente obtenido:', response.data);
+    
+    return {
+      success: true,
+      data: response.data.data
+    };
+  } catch (error) {
+    console.error(' Error obteniendo método de pago del cliente:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
+ * Obtiene el método de pago predeterminado del cliente
+ * @returns {Object} Método de pago predeterminado del cliente
+ */
+export const getDefaultClientPaymentMethod = async () => {
+  try {
+    const response = await apiClient.get('/metodos-pago-cliente/predeterminado');
+    console.log(' Método de pago predeterminado obtenido:', response.data);
+    
+    return {
+      success: true,
+      data: response.data.data
+    };
+  } catch (error) {
+    console.error(' Error obteniendo método de pago predeterminado:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
  * Guarda un método de pago para el cliente
  * @param {Object} paymentMethodData - Datos del método de pago a guardar
  * @returns {Object} Método de pago guardado
@@ -180,6 +260,88 @@ export const saveClientPaymentMethod = async (paymentMethodData) => {
     };
   } catch (error) {
     console.error(' Error guardando método de pago:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
+ * Actualiza un método de pago del cliente
+ * @param {number} clientPaymentMethodId - ID del método de pago del cliente
+ * @param {Object} updateData - Datos a actualizar
+ * @returns {Object} Método de pago actualizado
+ */
+export const updateClientPaymentMethod = async (clientPaymentMethodId, updateData) => {
+  try {
+    const response = await apiClient.put(`/metodos-pago-cliente/${clientPaymentMethodId}`, updateData);
+    console.log(' Método de pago actualizado exitosamente:', response.data);
+    
+    return {
+      success: true,
+      data: response.data.data
+    };
+  } catch (error) {
+    console.error(' Error actualizando método de pago:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
+ * Marca un método de pago como predeterminado
+ * @param {number} clientPaymentMethodId - ID del método de pago del cliente
+ * @returns {Object} Resultado de la operación
+ */
+export const setDefaultClientPaymentMethod = async (clientPaymentMethodId) => {
+  try {
+    const response = await apiClient.patch(`/metodos-pago-cliente/${clientPaymentMethodId}/predeterminado`);
+    console.log(' Método de pago marcado como predeterminado:', response.data);
+    
+    return {
+      success: true,
+      data: response.data.data
+    };
+  } catch (error) {
+    console.error(' Error marcando como predeterminado:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
+ * Elimina un método de pago del cliente
+ * @param {number} clientPaymentMethodId - ID del método de pago del cliente
+ * @returns {Object} Resultado de la eliminación
+ */
+export const deleteClientPaymentMethod = async (clientPaymentMethodId) => {
+  try {
+    const response = await apiClient.delete(`/metodos-pago-cliente/${clientPaymentMethodId}`);
+    console.log(' Método de pago eliminado exitosamente:', response.data);
+    
+    return {
+      success: true,
+      data: response.data.data
+    };
+  } catch (error) {
+    console.error(' Error eliminando método de pago:', error);
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;
