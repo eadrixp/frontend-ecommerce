@@ -75,8 +75,12 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
     case 'tarjeta_debito':
       if (!paymentData.numero_tarjeta) {
         errors.push('Número de tarjeta es requerido');
-      } else if (!/^\d{15,16}$/.test(paymentData.numero_tarjeta.replace(/\s/g, ''))) {
-        errors.push('Número de tarjeta inválido');
+      } else {
+        // Eliminar espacios y validar que sea exactamente 16 dígitos
+        const cardDigits = paymentData.numero_tarjeta.replace(/\s/g, '');
+        if (!/^\d{16}$/.test(cardDigits)) {
+          errors.push('Número de tarjeta debe tener 16 dígitos');
+        }
       }
       
       if (!paymentData.nombre_titular) {
@@ -85,18 +89,27 @@ export const validatePaymentData = (paymentMethod, paymentData) => {
       
       if (!paymentData.fecha_expiracion) {
         errors.push('Fecha de expiración es requerida');
-      } else if (!/^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(paymentData.fecha_expiracion)) {
-        errors.push('Formato de fecha inválido (MM/AA)');
+      } else if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(paymentData.fecha_expiracion)) {
+        errors.push('Formato de fecha inválido (MM/YY)');
+      } else {
+        // Validar que la fecha no esté expirada
+        const [month, year] = paymentData.fecha_expiracion.split('/');
+        const now = new Date();
+        const currentYear = now.getFullYear() % 100;
+        const currentMonth = now.getMonth() + 1;
+        
+        const expYear = parseInt(year);
+        const expMonth = parseInt(month);
+        
+        if (expYear < currentYear || (expYear === currentYear && expMonth < currentMonth)) {
+          errors.push('La tarjeta ha expirado');
+        }
       }
       
       if (!paymentData.cvv) {
         errors.push('CVV es requerido');
       } else if (!/^\d{3,4}$/.test(paymentData.cvv)) {
-        errors.push('CVV inválido');
-      }
-      
-      if (!paymentData.tipo_tarjeta) {
-        errors.push('Tipo de tarjeta es requerido');
+        errors.push('CVV debe tener 3 o 4 dígitos');
       }
       break;
 
