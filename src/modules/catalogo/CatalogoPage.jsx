@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getProductos } from "../../services/productService";
+import { getCart, addToCart as addToCartAPI, removeFromCart as removeFromCartAPI, updateCartItem as updateCartItemAPI } from "../../services/orderService";
 import ProductCard from "./components/ProductCard";
 import CatalogoHeader from "./components/CatalogoHeader";
 import CatalogoCart from "./components/CatalogoCart";
@@ -18,6 +19,56 @@ const CatalogoPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [cart, setCart] = useState([]);
   const [showCart, setShowCart] = useState(false);
+  const [cartLoading, setCartLoading] = useState(false);
+  const [cartError, setCartError] = useState(null);
+  const [cartId, setCartId] = useState(null);
+
+  // Cargar carrito del backend
+  useEffect(() => {
+    if (!isClienteLoggedIn) {
+      setCart([]);
+      setCartId(null);
+      return;
+    }
+
+    const loadCart = async () => {
+      try {
+        setCartLoading(true);
+        setCartError(null);
+        console.log("📦 Cargando carrito del servidor...");
+        const response = await getCart();
+        
+        if (response.success && response.data) {
+          const carritoData = response.data;
+          setCartId(carritoData.id_carrito);
+          
+          // Mapear productos del carrito a la estructura local
+          const cartItems = carritoData.productosCarrito?.map(item => ({
+            id: item.id_producto,
+            id_producto: item.id_producto,
+            id_carrito_producto: item.id_carrito_producto,
+            nombre_producto: item.producto?.nombre_producto || '',
+            precio: Number(item.precio_unitario) || 0,
+            cantidad: Number(item.cantidad) || 1,
+            stock: Number(item.producto?.stock) || 0,
+            imagen_url: item.producto?.imagenes?.[0]?.url_imagen || null,
+            producto: item.producto
+          })) || [];
+          
+          setCart(cartItems);
+          console.log("✅ Carrito cargado:", cartItems);
+        }
+      } catch (error) {
+        console.error("❌ Error al cargar carrito:", error);
+        setCartError("No se pudo cargar carrito");
+        setCart([]);
+      } finally {
+        setCartLoading(false);
+      }
+    };
+
+    loadCart();
+  }, [isClienteLoggedIn]);
 
   // Cargar productos
   useEffect(() => {
@@ -85,40 +136,109 @@ const CatalogoPage = () => {
   }, [productos, searchTerm, selectedCategory]);
 
   // Agregar al carrito
-  const addToCart = (producto) => {
-    const existingItem = cart.find(item => 
-      (item.id || item.id_producto) === (producto.id || producto.id_producto)
-    );
-    
-    if (existingItem) {
-      if (existingItem.cantidad >= producto.stock) {
-        alert(`No puedes agregar más de ${producto.stock} unidades de "${producto.nombre_producto}"`);
-        return;
-      }
-      setCart(cart.map(item =>
+  const addToCart = async (producto) => {
+    try {
+      const existingItem = cart.find(item => 
         (item.id || item.id_producto) === (producto.id || producto.id_producto)
-          ? { ...item, cantidad: item.cantidad + 1 }
-          : item
-      ));
-    } else {
-      if (producto.stock <= 0) {
-        alert(`"${producto.nombre_producto}" está agotado`);
-        return;
+      );
+      
+      if (existingItem) {
+        if (existingItem.cantidad >= producto.stock) {
+          alert(`No puedes agregar más de ${producto.stock} unidades de "${producto.nombre_producto}"`);
+          return;
+        }
+        // Actualizar cantidad en backend
+        const newQuantity = existingItem.cantidad + 1;
+        console.log(`📝 Actualizando cantidad en carrito: ${existingItem.id_carrito_producto} → ${newQuantity}`);
+        
+        const response = await updateCartItemAPI(existingItem.id_carrito_producto, newQuantity);
+        if (response.success) {
+          setCart(cart.map(item =>
+            (item.id || item.id_producto) === (producto.id || producto.id_producto)
+              ? { ...item, cantidad: newQuantity }
+              : item
+          ));
+          console.log("✅ Cantidad actualizada");
+        }
+      } else {
+        if (producto.stock <= 0) {
+          alert(`"${producto.nombre_producto}" está agotado`);
+          return;
+        }
+        // Agregar a backend
+        console.log(`➕ Agregando producto al carrito: ${producto.id_producto}`);
+        
+        const response = await addToCartAPI({ 
+          id_producto: producto.id_producto, 
+          cantidad: 1 
+        });
+        
+        if (response.success && response.data) {
+          const carritoData = response.data;
+          setCartId(carritoData.id_carrito);
+          
+          // Mapear nuevo producto
+          const newItem = carritoData.productosCarrito?.find(item => 
+            item.id_producto === producto.id_producto
+          );
+          
+          if (newItem) {
+            setCart(carritoData.productosCarrito.map(item => ({
+              id: item.id_producto,
+              id_producto: item.id_producto,
+              id_carrito_producto: item.id_carrito_producto,
+              nombre_producto: item.producto?.nombre_producto || '',
+              precio: Number(item.precio_unitario) || 0,
+              cantidad: Number(item.cantidad) || 1,
+              stock: Number(item.producto?.stock) || 0,
+              imagen_url: item.producto?.imagenes?.[0]?.url_imagen || null,
+              producto: item.producto
+            })));
+            console.log("✅ Producto agregado al carrito");
+          }
+        }
       }
-      setCart([...cart, { ...producto, cantidad: 1 }]);
+    } catch (error) {
+      console.error("❌ Error al agregar al carrito:", error);
+      const errorMsg = error.response?.data?.message || error.message;
+      if (errorMsg.includes("Stock insuficiente")) {
+        alert("No hay suficiente stock disponible");
+      } else {
+        alert(errorMsg || "Error al agregar producto al carrito");
+      }
     }
   };
 
   // Remover del carrito
-  const removeFromCart = (productoId) => {
-    setCart(cart.filter(item => (item.id || item.id_producto) !== productoId));
+  const removeFromCart = async (productoId) => {
+    try {
+      const itemToRemove = cart.find(item => (item.id || item.id_producto) === productoId);
+      if (!itemToRemove) return;
+
+      console.log(`🗑️ Eliminando producto del carrito: ${itemToRemove.id_carrito_producto}`);
+      const response = await removeFromCartAPI(itemToRemove.id_carrito_producto);
+      
+      if (response.success) {
+        setCart(cart.filter(item => (item.id || item.id_producto) !== productoId));
+        console.log("✅ Producto eliminado del carrito");
+      }
+    } catch (error) {
+      console.error("❌ Error al eliminar del carrito:", error);
+      alert(error.message || "Error al eliminar producto del carrito");
+    }
   };
 
   // Actualizar cantidad
-  const updateQuantity = (productoId, newQuantity) => {
-    if (newQuantity === 0) {
-      removeFromCart(productoId);
-    } else {
+  const updateQuantity = async (productoId, newQuantity) => {
+    try {
+      if (newQuantity === 0) {
+        await removeFromCart(productoId);
+        return;
+      }
+
+      const itemToUpdate = cart.find(item => (item.id || item.id_producto) === productoId);
+      if (!itemToUpdate) return;
+
       const producto = productos.find(p => (p.id || p.id_producto) === productoId);
       
       if (producto && newQuantity > producto.stock) {
@@ -126,11 +246,20 @@ const CatalogoPage = () => {
         return;
       }
       
-      setCart(cart.map(item =>
-        (item.id || item.id_producto) === productoId
-          ? { ...item, cantidad: newQuantity }
-          : item
-      ));
+      console.log(`📝 Actualizando cantidad: ${itemToUpdate.id_carrito_producto} → ${newQuantity}`);
+      const response = await updateCartItemAPI(itemToUpdate.id_carrito_producto, newQuantity);
+      
+      if (response.success) {
+        setCart(cart.map(item =>
+          (item.id || item.id_producto) === productoId
+            ? { ...item, cantidad: newQuantity }
+            : item
+        ));
+        console.log("✅ Cantidad actualizada");
+      }
+    } catch (error) {
+      console.error("❌ Error al actualizar cantidad:", error);
+      alert(error.message || "Error al actualizar cantidad");
     }
   };
 
@@ -143,6 +272,7 @@ const CatalogoPage = () => {
   const handleLogout = () => {
     logout();
     setCart([]);
+    setCartId(null);
   };
 
   if (loading) {

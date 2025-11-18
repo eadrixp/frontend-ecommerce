@@ -21,6 +21,17 @@ const CatalogoCart = ({
 
   const total = calcularTotal();
 
+  const handleQuantityChange = (item, newQuantity) => {
+    const max = Number(item.stock) || 0;
+    
+    if (newQuantity > max) {
+      alert(`No hay suficiente stock. Disponible: ${max} unidades`);
+      return;
+    }
+    
+    onUpdateQuantity(item.id || item.id_producto, newQuantity);
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -85,27 +96,26 @@ const CatalogoCart = ({
                       Q{(Number(item.precio) || 0).toLocaleString('es-GT')}
                     </div>
 
-                    {/* Cantidad */}
-                    <div className="catalogo-cart-item-qty">
+                    {/* Cantidad */}\n                    <div className="catalogo-cart-item-qty">
                       <button
-                        onClick={() => onUpdateQuantity(
-                          item.id || item.id_producto,
-                          Math.max(1, (Number(item.cantidad) || 1) - 1)
-                        )}
+                        onClick={() => handleQuantityChange(item, Math.max(1, (Number(item.cantidad) || 1) - 1))}
+                        disabled={(Number(item.cantidad) || 1) <= 1}
                         aria-label="Disminuir cantidad"
                       >
                         <FiMinus size={14} />
                       </button>
                       <span>{Number(item.cantidad) || 1}</span>
                       <button
-                        onClick={() => onUpdateQuantity(
-                          item.id || item.id_producto,
-                          (Number(item.cantidad) || 1) + 1
-                        )}
+                        onClick={() => handleQuantityChange(item, (Number(item.cantidad) || 1) + 1)}
+                        disabled={(Number(item.cantidad) || 1) >= (Number(item.stock) || 0)}
+                        title={`Stock disponible: ${Number(item.stock) || 0}`}
                         aria-label="Aumentar cantidad"
                       >
                         <FiPlus size={14} />
                       </button>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                      Stock: {Number(item.stock) || 0}
                     </div>
                   </div>
 

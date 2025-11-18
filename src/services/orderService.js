@@ -52,10 +52,54 @@ export const getCart = async () => {
  */
 export const updateCartItem = async (cartItemId, cantidad) => {
   try {
-    const response = await apiClient.put(`/carrito/${cartItemId}`, { cantidad });
+    const response = await apiClient.patch(`/carrito-productos/${cartItemId}/cantidad`, { cantidad });
     return response.data;
   } catch (error) {
     console.error('Error actualizando item del carrito:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
+ * Vacía el carrito completo
+ * @returns {Object} Respuesta del servidor
+ */
+export const clearCart = async () => {
+  try {
+    console.log('🗑️ Vaciando carrito...');
+    const response = await apiClient.delete('/carrito/clear');
+    return response.data;
+  } catch (error) {
+    console.error('Error vaciando carrito:', error);
+    if (error.response) {
+      const serverMessage = error.response.data?.message;
+      const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      throw new Error(msg);
+    } else if (error.request) {
+      throw new Error('No se recibió respuesta del servidor');
+    }
+    throw new Error(error.message || 'Error desconocido en la solicitud');
+  }
+};
+
+/**
+ * Obtiene el resumen del carrito
+ * @param {number} cartId - ID del carrito
+ * @returns {Object} Resumen del carrito
+ */
+export const getCartSummary = async (cartId) => {
+  try {
+    const response = await apiClient.get(`/carrito-productos/${cartId}/resumen`);
+    return response.data;
+  } catch (error) {
+    console.error('Error obteniendo resumen del carrito:', error);
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;
