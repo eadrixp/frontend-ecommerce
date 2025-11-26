@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from "react";
-import { FiUser, FiLogOut } from 'react-icons/fi';
+import { FiUser, FiLogOut, FiShoppingBag } from 'react-icons/fi';
+import { useNavigate } from "react-router-dom";
 
 const UserMenu = ({ user, onLogout}) => {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef(null);
   const buttonRef = useRef(null);
+  const navigate = useNavigate();
 
   // Cerrar menú al hacer clic fuera
   useEffect(() => {
@@ -21,15 +23,15 @@ const UserMenu = ({ user, onLogout}) => {
 
   // Opciones del menú - Fácil de agregar/eliminar
   const menuItems = [
-    /*{ //Ejemplo de como agregar más opciones
-      id: "profile",
-      label: "Mi Perfil",
-      icon: FiUser,
+    {
+      id: "orders",
+      label: "Mis Órdenes",
+      icon: FiShoppingBag,
       onClick: () => {
-        onNavigate(); // Aquí se puede pasar la ruta como argumento si se desea
+        navigate('/ordenes');
         setIsOpen(false);
       }
-    },*/
+    },
     {
       id: "logout",
       label: "Cerrar Sesión",

@@ -244,3 +244,9 @@ export const getOrderDetails = async (orderId) => {
     throw new Error(error.message || 'Error desconocido en la solicitud');
   }
 };
+
+/**
+ * Alias de getOrders para mantener consistencia con nombres en español
+ * @returns {Array} Lista de órdenes
+ */
+export const getOrderes = getOrders;
