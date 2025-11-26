@@ -16,6 +16,7 @@ import UsuariosList from "./modules/usuarios/UsuarioList";
 import ProveedoresPage from "./modules/proveedores/ProveedoresPage";
 import AlmacenesPage from "./modules/almacenes/AlmacenesPage";
 import CotizacionesPage from "./modules/cotizaciones/CotizacionesPage";
+import OrdersPage from "./modules/ordenes/OrdersPage";
 
 // Componentes
 import PrivateRoute from "./components/PrivateRoute";
@@ -38,6 +39,9 @@ function App() {
       
       {/* Checkout page para clientes autenticados */}
       <Route path="/checkout" element={<CheckoutPage />} />
+
+      {/* Mis Órdenes page para clientes autenticados */}
+      <Route path="/ordenes" element={<OrdersPage />} />
 
       {/* Rutas protegidas con sidebar */}
       <Route element={<PrivateRoute />}>
