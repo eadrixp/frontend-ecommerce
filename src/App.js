@@ -25,8 +25,11 @@ import DashboardLayout from "./components/layout/DashboardLayout";
 function App() {
   return (
     <Routes>
-      {/* Página principal (login) */}
-      <Route path="/" element={<LoginPage />} />
+      {/* Página principal (Catálogo) */}
+      <Route path="/" element={<Navigate to="/catalogo" />} />
+
+      {/* Login */}
+      <Route path="/login" element={<LoginPage />} />
       
       {/* Registro de usuario inicial */}
       <Route path="/auth/register" element={<UserRegisterPage />} />
@@ -126,7 +129,7 @@ function App() {
       
 
       {/* Redirección por defecto */}
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<Navigate to="/catalogo" />} />
     </Routes>
   );
 }
