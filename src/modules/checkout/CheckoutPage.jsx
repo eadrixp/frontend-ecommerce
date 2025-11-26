@@ -268,8 +268,10 @@ const CheckoutPage = () => {
         return;
       }
       
-      // Validar datos según el método de pago seleccionado (todos excepto efectivo)
-      if (selectedPaymentMethod.tipo_metodo !== 'efectivo') {
+      // Validar datos según el método de pago seleccionado
+      // Solo validar si es un método NUEVO (no guardado)
+      const isNewMethod = !selectedPaymentMethod.isSaved;
+      if (isNewMethod && selectedPaymentMethod.tipo_metodo !== 'efectivo') {
         const validation = validatePaymentData(selectedPaymentMethod.tipo_metodo, paymentData);
         if (!validation.isValid) {
           setError(validation.errors.join(", "));
@@ -312,12 +314,12 @@ const CheckoutPage = () => {
       // POST /api/ordenes espera:
       // {
       //   id_metodo_pago_cliente: number,
-      //   id_direccion: number,
+      //   id_direccion_envio: number,
       //   notas_orden?: string
       // }
       const orderData = {
         id_metodo_pago_cliente: paymentMethodId,
-        id_direccion: selectedAddressId,
+        id_direccion_envio: selectedAddressId,
         notas_orden: orderNotes || undefined
       };
 

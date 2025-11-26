@@ -21,6 +21,25 @@ const CatalogoCart = ({
 
   const total = calcularTotal();
 
+  const handleQuantityChange = (item, newQuantity) => {
+    const max = Number(item.stock) || 0;
+    
+    console.log(`🔄 [CART-UI] Cambio de cantidad - Producto: ${item.nombre_producto}`);
+    console.log(`🔄 [CART-UI]   Cantidad actual: ${item.cantidad}`);
+    console.log(`🔄 [CART-UI]   Nueva cantidad: ${newQuantity}`);
+    console.log(`🔄 [CART-UI]   Stock máximo: ${max}`);
+    console.log(`🔄 [CART-UI]   ID Carrito Producto: ${item.id_carrito_producto}`);
+    
+    if (newQuantity > max) {
+      console.warn(`⚠️ [CART-UI] Intento de exceder stock - Cantidad solicitada: ${newQuantity}, Stock disponible: ${max}`);
+      alert(`No hay suficiente stock. Disponible: ${max} unidades`);
+      return;
+    }
+    
+    console.log(`✅ [CART-UI] Llamando a onUpdateQuantity con: ${item.id || item.id_producto} → ${newQuantity}`);
+    onUpdateQuantity(item.id || item.id_producto, newQuantity);
+  };
+
   return (
     <>
       {/* Overlay */}
@@ -50,7 +69,13 @@ const CatalogoCart = ({
         {cartItems.length > 0 ? (
           <>
             <div className="catalogo-cart-items">
-              {cartItems.map((item) => (
+              {cartItems.map((item) => {
+                console.log(`📷 [CART-RENDER] Renderizando item:`, item.nombre_producto);
+                console.log(`📷 [CART-RENDER]   imagen_url raw:`, item.imagen_url);
+                console.log(`📷 [CART-RENDER]   imagen_url procesada:`, item.imagen_url ? getImageUrl(item.imagen_url) : 'null');
+                console.log(`📷 [CART-RENDER]   producto objeto:`, item.producto);
+                
+                return (
                 <div key={item.id || item.id_producto} className="catalogo-cart-item">
                   {/* Imagen */}
                   <div className="catalogo-cart-item-image">
@@ -59,6 +84,7 @@ const CatalogoCart = ({
                         src={getImageUrl(item.imagen_url)}
                         alt={item.nombre_producto}
                         onError={(e) => {
+                          console.error(`📷 [CART-IMG-ERROR] Error cargando imagen para ${item.nombre_producto}, URL:`, getImageUrl(item.imagen_url));
                           e.target.src = 'https://via.placeholder.com/80?text=Sin+Imagen';
                         }}
                       />
@@ -85,27 +111,26 @@ const CatalogoCart = ({
                       Q{(Number(item.precio) || 0).toLocaleString('es-GT')}
                     </div>
 
-                    {/* Cantidad */}
-                    <div className="catalogo-cart-item-qty">
+                    {/* Cantidad */}\n                    <div className="catalogo-cart-item-qty">
                       <button
-                        onClick={() => onUpdateQuantity(
-                          item.id || item.id_producto,
-                          Math.max(1, (Number(item.cantidad) || 1) - 1)
-                        )}
+                        onClick={() => handleQuantityChange(item, Math.max(1, (Number(item.cantidad) || 1) - 1))}
+                        disabled={(Number(item.cantidad) || 1) <= 1}
                         aria-label="Disminuir cantidad"
                       >
                         <FiMinus size={14} />
                       </button>
                       <span>{Number(item.cantidad) || 1}</span>
                       <button
-                        onClick={() => onUpdateQuantity(
-                          item.id || item.id_producto,
-                          (Number(item.cantidad) || 1) + 1
-                        )}
+                        onClick={() => handleQuantityChange(item, (Number(item.cantidad) || 1) + 1)}
+                        disabled={(Number(item.cantidad) || 1) >= (Number(item.stock) || 0)}
+                        title={`Stock disponible: ${Number(item.stock) || 0}`}
                         aria-label="Aumentar cantidad"
                       >
                         <FiPlus size={14} />
                       </button>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '4px' }}>
+                      Stock: {Number(item.stock) || 0}
                     </div>
                   </div>
 
@@ -118,7 +143,8 @@ const CatalogoCart = ({
                     <FiTrash2 />
                   </button>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             {/* Footer */}
