@@ -25,7 +25,7 @@ export const addToCart = async (cartItem) => {
 
 /**
  * Obtiene el carrito del cliente logueado
- * @returns {Array} Items del carrito
+ * @returns {Object} Datos del carrito con productosCarrito array
  */
 export const getCart = async () => {
   try {
@@ -46,21 +46,33 @@ export const getCart = async () => {
 
 /**
  * Actualiza la cantidad de un item en el carrito
- * @param {number} cartItemId - ID del item en el carrito
+ * @param {number} cartItemId - ID del item en el carrito (id_carrito_producto)
  * @param {number} cantidad - Nueva cantidad
  * @returns {Object} Item actualizado
  */
 export const updateCartItem = async (cartItemId, cantidad) => {
   try {
+    console.log('📊 [API] updateCartItem - ID Carrito Producto:', cartItemId, 'Cantidad:', cantidad);
+    console.log('📊 [API] Enviando PATCH a: /carrito-productos/' + cartItemId + '/cantidad');
+    console.log('📊 [API] Payload:', { cantidad });
+    
     const response = await apiClient.patch(`/carrito-productos/${cartItemId}/cantidad`, { cantidad });
+    
+    console.log('✅ [API] Respuesta exitosa:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error actualizando item del carrito:', error);
+    console.error('❌ [API] Error actualizando item del carrito:', error);
+    console.error('❌ [API] Error status:', error.response?.status);
+    console.error('❌ [API] Error data:', error.response?.data);
+    console.error('❌ [API] Error message:', error.message);
+    
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      console.error('❌ [API] Mensaje del servidor:', msg);
       throw new Error(msg);
     } else if (error.request) {
+      console.error('❌ [API] No se recibió respuesta del servidor');
       throw new Error('No se recibió respuesta del servidor');
     }
     throw new Error(error.message || 'Error desconocido en la solicitud');
@@ -113,20 +125,30 @@ export const getCartSummary = async (cartId) => {
 
 /**
  * Elimina un item del carrito
- * @param {number} cartItemId - ID del item en el carrito
+ * @param {number} productoId - ID del producto a eliminar (id_producto)
  * @returns {Object} Respuesta del servidor
  */
-export const removeFromCart = async (cartItemId) => {
+export const removeFromCart = async (productoId) => {
   try {
-    const response = await apiClient.delete(`/carrito/${cartItemId}`);
+    console.log('🗑️ [API] Eliminando producto del carrito - ID:', productoId);
+    console.log('🗑️ [API] Enviando DELETE a: /carrito/' + productoId);
+    
+    const response = await apiClient.delete(`/carrito/${productoId}`);
+    
+    console.log('✅ [API] Respuesta de eliminación:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error eliminando del carrito:', error);
+    console.error('❌ [API] Error eliminando del carrito:', error);
+    console.error('❌ [API] Error status:', error.response?.status);
+    console.error('❌ [API] Error data:', error.response?.data);
+    
     if (error.response) {
       const serverMessage = error.response.data?.message;
       const msg = serverMessage || `Error del servidor: ${error.response.status}`;
+      console.error('❌ [API] Mensaje del servidor:', msg);
       throw new Error(msg);
     } else if (error.request) {
+      console.error('❌ [API] No se recibió respuesta del servidor');
       throw new Error('No se recibió respuesta del servidor');
     }
     throw new Error(error.message || 'Error desconocido en la solicitud');

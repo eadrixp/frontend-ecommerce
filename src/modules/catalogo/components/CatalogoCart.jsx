@@ -24,11 +24,19 @@ const CatalogoCart = ({
   const handleQuantityChange = (item, newQuantity) => {
     const max = Number(item.stock) || 0;
     
+    console.log(`🔄 [CART-UI] Cambio de cantidad - Producto: ${item.nombre_producto}`);
+    console.log(`🔄 [CART-UI]   Cantidad actual: ${item.cantidad}`);
+    console.log(`🔄 [CART-UI]   Nueva cantidad: ${newQuantity}`);
+    console.log(`🔄 [CART-UI]   Stock máximo: ${max}`);
+    console.log(`🔄 [CART-UI]   ID Carrito Producto: ${item.id_carrito_producto}`);
+    
     if (newQuantity > max) {
+      console.warn(`⚠️ [CART-UI] Intento de exceder stock - Cantidad solicitada: ${newQuantity}, Stock disponible: ${max}`);
       alert(`No hay suficiente stock. Disponible: ${max} unidades`);
       return;
     }
     
+    console.log(`✅ [CART-UI] Llamando a onUpdateQuantity con: ${item.id || item.id_producto} → ${newQuantity}`);
     onUpdateQuantity(item.id || item.id_producto, newQuantity);
   };
 
@@ -61,7 +69,13 @@ const CatalogoCart = ({
         {cartItems.length > 0 ? (
           <>
             <div className="catalogo-cart-items">
-              {cartItems.map((item) => (
+              {cartItems.map((item) => {
+                console.log(`📷 [CART-RENDER] Renderizando item:`, item.nombre_producto);
+                console.log(`📷 [CART-RENDER]   imagen_url raw:`, item.imagen_url);
+                console.log(`📷 [CART-RENDER]   imagen_url procesada:`, item.imagen_url ? getImageUrl(item.imagen_url) : 'null');
+                console.log(`📷 [CART-RENDER]   producto objeto:`, item.producto);
+                
+                return (
                 <div key={item.id || item.id_producto} className="catalogo-cart-item">
                   {/* Imagen */}
                   <div className="catalogo-cart-item-image">
@@ -70,6 +84,7 @@ const CatalogoCart = ({
                         src={getImageUrl(item.imagen_url)}
                         alt={item.nombre_producto}
                         onError={(e) => {
+                          console.error(`📷 [CART-IMG-ERROR] Error cargando imagen para ${item.nombre_producto}, URL:`, getImageUrl(item.imagen_url));
                           e.target.src = 'https://via.placeholder.com/80?text=Sin+Imagen';
                         }}
                       />
@@ -128,7 +143,8 @@ const CatalogoCart = ({
                     <FiTrash2 />
                   </button>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             {/* Footer */}
