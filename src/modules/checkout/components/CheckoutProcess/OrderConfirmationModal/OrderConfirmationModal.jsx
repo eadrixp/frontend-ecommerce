@@ -8,12 +8,12 @@ import { FiCheckCircle } from "react-icons/fi";
  */
 const OrderConfirmationModal = ({ isOpen, order, onClose }) => {
   const navigate = useNavigate();
-  const [countdown, setCountdown] = useState(3);
+  const [countdown, setCountdown] = useState(5);
   const [userClicked, setUserClicked] = useState(false);
 
   const handleViewDetails = useCallback(() => {
     if (order?.id_orden) {
-      navigate(`/ordenes/${order.id_orden}`);
+      navigate('/catalogo');
       onClose();
     }
   }, [order?.id_orden, navigate, onClose]);
@@ -122,7 +122,7 @@ const OrderConfirmationModal = ({ isOpen, order, onClose }) => {
               fontFamily: "monospace",
             }}
           >
-            {order.numero_orden}
+            {order.id_orden}
           </p>
         </div>
 
@@ -241,7 +241,7 @@ const OrderConfirmationModal = ({ isOpen, order, onClose }) => {
             e.target.style.backgroundColor = "#2563eb";
           }}
         >
-          Ver Detalles
+          Continuar Comprando
         </button>
 
         {/* Countdown */}
@@ -253,7 +253,7 @@ const OrderConfirmationModal = ({ isOpen, order, onClose }) => {
             marginBottom: 0,
           }}
         >
-          Redirigiendo en {countdown} segundos...
+          Redirigiendo al catálogo en {countdown} segundos...
         </p>
       </div>
 
